@@ -209,7 +209,7 @@ class cli:
             # print len(parsed)
             self.transfer(parsed)
 
-if __name__ == '__main__':
+def run():
     parser = argparse.ArgumentParser()
     parser.add_argument('-u', '--url', help = 'Input HTTP REST URL of your KMX query engine.')
     args = parser.parse_args()
@@ -224,3 +224,7 @@ if __name__ == '__main__':
         CLI = cli()
         CLI.url = url
         CLI.execQuery()
+
+
+if __name__ == '__main__':
+    run()
