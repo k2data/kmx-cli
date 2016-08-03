@@ -40,14 +40,17 @@ def formatted_output(query_result, fmt='psql'):
                 sensor_recs = rec['dataPoints']
                 for sensor in sensor_recs:
                     result.append((device, ts, sensor.get('sensor', non_exist), sensor.get('value', non_exist)))
-    else:
+        if result:
+            print tabulate(result, headers, tablefmt=fmt)
+        print err_msg
+    elif 'dataPoints' in query_result.keys():
         for rec in query_result['dataPoints']:
-            result.append((rec['device'], rec.get('timestamp', non_exist), rec.get('sensor', non_exist),
-                           rec.get('value', non_exist)))
-    if result:
-        print tabulate(result, headers, tablefmt=fmt)
-    print err_msg
-
+            result.append((rec['device'], rec.get('timestamp', non_exist), rec.get('sensor', non_exist),rec.get('value', non_exist)))
+        if result:
+            print tabulate(result, headers, tablefmt=fmt)
+        print err_msg
+    else :
+        print json.dumps(query_result, sort_keys=True, indent=4) + '\n'
 
 class cli:
     def __init__(self):
@@ -314,7 +317,7 @@ class cli:
         ip = socket.gethostbyname(hostname);
 
         while True:
-            sql = raw_input(Back.YELLOW + '[' + hostname + '@' + ip + '] > ')
+            sql = raw_input('[' + hostname + '@' + ip + '] > ')
 
             if sql.upper() == 'EXIT' or sql.upper() == 'BYE':
                 print 'Exit KMX CLI ...'
@@ -345,13 +348,12 @@ def run():
         print 'Use -u or --url to init URL'
         print 'Use -h to get help ...'
 
-
 def test():
     client = cli()
     client.url = 'http://192.168.130.2/cloud/qa3/kmx/v2'
     # parsed = sqlparse.parse("create devices d(dt) tags(a,b,c,d) attributes(a b,c d)")
     parsed = sqlparse.parse(
-        "select  WCNVConver_chopper_igbt_temp, WCNVPwrReactInstMagf  from GW150001 where iso > '2015-04-24T20:10:00.000%2B08:00' and iso < '2015-05-01T07:59:59.000%2B08:00'")
+        "select WCNVConver_chopper_igbt_temp,WCNVPwrReactInstMagf from GW150001 where iso > '2015-04-24T20:10:00.000%2B08:00' and iso < '2015-05-01T07:59:59.000%2B08:00'")
 
     client.transfer(parsed)
 
@@ -359,4 +361,3 @@ def test():
 if __name__ == '__main__':
     run()
     # test()
-
