@@ -14,6 +14,8 @@ import socket
 
 from tabulate import tabulate
 from colorama import init, Fore, Back
+import arrow
+import re
 
 init(autoreset=True)
 
@@ -130,6 +132,41 @@ class cli:
                 break
         return tables
 
+    def relativeTimeParser(self, relativeStr, format):
+        if format.upper() <> 'ISO' and format.upper() <> 'TIMESTAMP':
+            print 'The time format is either not ISO or TIMESTAMP'
+            return relativeStr
+        if relativeStr.upper() == 'NOW':
+            if format.upper() == 'ISO':
+                return arrow.now().format('YYYY-MM-DDTHH:mm:ss.SSSZZ')
+            elif format.upper() == 'TIMESTAMP':
+                return int(round(arrow.now().float_timestamp * 1000))
+        else:
+            regex = '^(now)(-)([0-9]+)([s,m,h,d,w]{1})$'
+            pattern = re.compile(regex)
+            if pattern.match(str(relativeStr)):
+                segments = pattern.findall(str(relativeStr))
+                if segments[0][3] == 's':
+                    unit = 'seconds'
+                elif segments[0][3] == 'm':
+                    unit = 'minutes'
+                elif segments[0][3] == 'h':
+                    unit = 'hours'
+                elif segments[0][3] == 'd':
+                    unit = 'days'
+                elif segments[0][3] == 'w':
+                    unit = 'weeks'
+                replaceStr = unit + "=%s%s" % (segments[0][1],segments[0][2])
+                param = {unit:int("%s%s" % (segments[0][1],segments[0][2]))}
+                print param
+                if format.upper() == 'ISO':
+                    return arrow.now().replace(**param).format('YYYY-MM-DDTHH:mm:ss.SSSZZ')
+                elif format.upper() == 'TIMESTAMP':
+                    return int(round(arrow.now().replace(**param).float_timestamp * 1000))
+            else:
+                print 'The relative time format is wrong ...'
+                return relativeStr
+
     def getWhere(self, sql):
         # if self.isDML(sql) == False:
         if not self.isDML(sql):
@@ -170,6 +207,9 @@ class cli:
                                 value = ctoken.value
                         # tell if comparion is "=", if yes, the query is a point query
                         value = str(value).replace("'", "")
+                        # If time is relative time
+                        if value.upper().startswith('NOW'):
+                            value = self.relativeTimeParser(value, id)
                         # print value
                         if comp == '=':
                             pointQueryValue.update({id: value})
@@ -198,7 +238,11 @@ class cli:
                         elif token.ttype is not Whitespace:
                             value = token.value
 
-                        if id <> None and value <> None:
+                        if id and value:
+                            value = str(value).replace("'", "")
+                            # If time is relative time
+                            if value.upper().startswith('NOW'):
+                                value = self.relativeTimeParser(value, id)
                             if comp == '=':
                                 pointQueryValue.update({id: value})
                             elif comp == '>':
@@ -207,9 +251,6 @@ class cli:
                                 rangeQueryEnd.update({id: value})
 
 
-                                # print pointQueryValue
-                                # print rangeQueryStart
-                                # print rangeQueryEnd
                 if pointQueryValue:
                     return pointQuery
                 if rangeQueryStart:
@@ -368,5 +409,5 @@ def test():
 
 
 if __name__ == '__main__':
-    # run()
-    test()
+    run()
+    # test()
