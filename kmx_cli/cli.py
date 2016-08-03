@@ -14,6 +14,36 @@ import copy
 from colorama import init, Fore, Back
 init(autoreset=True)
 
+from tabulate import tabulate
+
+def formatted_output(query_result, fmt='psql'):
+    ''' @param: query_result is a dict
+        @param: fmt may be 'plain', 'simple', 'grid', 'fancy_grid',
+                'psql', 'pipe', 'orgtbl', 'rst', 'html' etc
+                detail see https://pypi.python.org/pypi/tabulate
+    '''
+    result = []
+    headers = ['device', 'ts', 'sensorName', 'sensorValue']
+    non_exist = '-' # show when key does not exist
+    err_msg = query_result['message']
+
+    if 'dataRows' in query_result.keys():
+        recs = query_result['dataRows']
+        for rec in recs:
+            device = rec.get('device', non_exist)
+            ts = rec.get('iso', non_exist)
+            if 'dataPoints' in rec.keys():
+                sensor_recs = rec['dataPoints']
+                for sensor in sensor_recs:
+                    result.append((device, ts, sensor.get('sensor', non_exist), sensor.get('value', non_exist)))
+    else:
+        for rec in query_result['dataPoints']:
+            result.append((rec['device'], rec.get('timestamp', non_exist), rec.get('sensor', non_exist), rec.get('value', non_exist)))
+    if result:
+        print tabulate(result, headers, tablefmt=fmt)
+    print err_msg
+
+
 class cli:
 
     def __init__(self):
