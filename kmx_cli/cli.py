@@ -9,6 +9,7 @@ from sqlparse.sql import Comparison as sqlcomp
 import requests
 import json
 import argparse
+import copy
 
 from colorama import init, Fore, Back
 init(autoreset=True)
@@ -44,7 +45,7 @@ class cli:
         return ids
 
     def getColumns(self, sql):
-        if self.isDML(sql) == False:
+        if not self.isDML(sql):
             return None
         ids = self.getColumnAndTables(sql)
         columns = []
@@ -55,18 +56,22 @@ class cli:
         return columns
 
     def getTables(self, sql):
-        if self.isDML(sql) == False:
+        if not self.isDML(sql):
             return None
         ids = self.getColumnAndTables(sql)
         columns = self.getColumns(sql)
-        tables = []
+        tables = copy.deepcopy(ids)
         for id in ids:
-            if id.upper() <> 'FROM' and id not in columns:
-                tables.append(id)
+            if id.upper() <> 'FROM':
+                tables.remove(id)
+            else:
+                tables.remove(id)
+                break
         return tables
 
     def getWhere(self, sql):
-        if self.isDML(sql) == False:
+        # if self.isDML(sql) == False:
+        if not self.isDML(sql):
             return None
         tokens = sql.tokens
         for token in tokens:
@@ -103,8 +108,6 @@ class cli:
                                 # print ctoken.value
                                 value = ctoken.value
                         # tell if comparion is "=", if yes, the query is a point query
-                        # print '===='
-                        # print comp
                         value = str(value).replace("'", "")
                         # print value
                         if comp == '=':
@@ -114,7 +117,7 @@ class cli:
                         elif comp == '<':
                             rangeQueryEnd.update({id: value})
 
-                if hasComparisonToken == False:
+                if not hasComparisonToken:
                     id = None
                     comp = None
                     value = None
@@ -146,32 +149,29 @@ class cli:
                     # print rangeQueryStart
                     # print rangeQueryEnd
                 if pointQueryValue:
-                    # return json.dumps(pointQuery)
                     return pointQuery
                 if rangeQueryStart:
-                    # return json.dumps(rangeQuery)
                     return rangeQuery
 
                 # return token.value
 
     def transfer(self, dmls):
         for dml in dmls:
-            # print '-- ' + str(dml)
-
-            if self.isDML(dml) == False:
+            if not self.isDML(dml):
                 continue
 
             devices = self.getTables(dml)
-            # print devices
+            if not devices:
+                print 'Device should be provided ...'
+                continue
             if len(devices) > 1:
                 print 'Multi-devices query is not supported now ...'
                 continue
             sensors = self.getColumns(dml)
             predicate = self.getWhere(dml)
-            if predicate == None:
+            if not predicate:
                 print 'The select statement does NOT contain WHERE predicates, currently is not supported ...'
                 return None
-            # print predicate
             query_url = 'data-points'
             if predicate.has_key('sampleTime'):
                 key = 'sampleTime'
@@ -188,8 +188,6 @@ class cli:
             select = {"sources": sources}
 
             selectstr = json.dumps(select)
-            # print str(select)
-            # print json.dumps(select)
 
             query = requests.get(self.url + '/data/' + query_url + '?select=' + selectstr)
             # print self.url + '/data/data-points?select=' + selectstr
@@ -199,14 +197,12 @@ class cli:
             print json.dumps(response, sort_keys=True, indent=4)
 
     def execQuery(self):
-        var = 1
-        while var == 1:
+        while True:
             sql = raw_input("> ")
             if sql.upper() == 'EXIT' or sql.upper() == 'BYE':
                 print 'Exit KMX CLI ...'
                 return
             parsed = sqlparse.parse(sql)
-            # print len(parsed)
             self.transfer(parsed)
 
 def run():
@@ -214,16 +210,16 @@ def run():
     parser.add_argument('-u', '--url', help = 'Input HTTP REST URL of your KMX query engine.')
     args = parser.parse_args()
     url = args.url
-    if url == None:
-        print 'You must provide an HTTP REST URL for KMX query ...'
-        print 'Use -u or --url to init URL'
-        print 'Use -h to get help ...'
-    else:
+    if url:
         print 'URL input is: ' + Back.GREEN + str(url)
-
         CLI = cli()
         CLI.url = url
         CLI.execQuery()
+
+    else:
+        print 'You must provide an HTTP REST URL for KMX query ...'
+        print 'Use -u or --url to init URL'
+        print 'Use -h to get help ...'
 
 
 if __name__ == '__main__':
