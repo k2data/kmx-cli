@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sqlparse
-from sqlparse.tokens import DML, Keyword, Whitespace, Wildcard, Comparison
+from sqlparse.tokens import DML, DDL, Keyword, Whitespace, Wildcard, Comparison
 from sqlparse.sql import IdentifierList, Identifier, Where
 from sqlparse.sql import Comparison as sqlcomp
 
@@ -10,11 +10,15 @@ import requests
 import json
 import argparse
 import copy
-
-from colorama import init, Fore, Back
-init(autoreset=True)
+import socket
 
 from tabulate import tabulate
+from colorama import init, Fore, Back
+
+init(autoreset=True)
+
+headers = {"Content-Type": "application/json"}
+
 
 def formatted_output(query_result, fmt='psql'):
     ''' @param: query_result is a dict
@@ -24,7 +28,7 @@ def formatted_output(query_result, fmt='psql'):
     '''
     result = []
     headers = ['device', 'ts', 'sensorName', 'sensorValue']
-    non_exist = '-' # show when key does not exist
+    non_exist = '-'  # show when key does not exist
     err_msg = query_result['message']
 
     if 'dataRows' in query_result.keys():
@@ -36,25 +40,52 @@ def formatted_output(query_result, fmt='psql'):
                 sensor_recs = rec['dataPoints']
                 for sensor in sensor_recs:
                     result.append((device, ts, sensor.get('sensor', non_exist), sensor.get('value', non_exist)))
-    else:
+        if result:
+            print tabulate(result, headers, tablefmt=fmt)
+        print err_msg
+    elif 'dataPoints' in query_result.keys():
         for rec in query_result['dataPoints']:
-            result.append((rec['device'], rec.get('timestamp', non_exist), rec.get('sensor', non_exist), rec.get('value', non_exist)))
-    if result:
-        print tabulate(result, headers, tablefmt=fmt)
-    print err_msg
-
+            result.append((rec['device'], rec.get('timestamp', non_exist), rec.get('sensor', non_exist),rec.get('value', non_exist)))
+        if result:
+            print tabulate(result, headers, tablefmt=fmt)
+        print err_msg
+    else :
+        print json.dumps(query_result, sort_keys=True, indent=4) + '\n'
 
 class cli:
-
     def __init__(self):
         print 'KMX CLI is running ...'
         # self.url = 'http://192.168.130.2/cloud/qa3/kmx/v2'
+
+    def get(self, uri):
+        response = requests.get(uri)
+        print Fore.RED + uri
+        payload = json.loads(response.text)
+        formatted_output(payload)
+        # print json.dumps(payload, sort_keys=True, indent=4) + '\n'
+
+    def post(self, uri, payload):
+        response = requests.post(uri, headers=headers, data=payload)
+        responsePayload = json.loads(response.text)
+
+        print Fore.RED + uri
+        print Fore.CYAN + payload
+        print Fore.MAGENTA + json.dumps(responsePayload, sort_keys=True, indent=4) + '\n'
 
     def isDML(self, sql):
         tokens = sql.tokens
         firstToken = tokens[0]
         if firstToken.ttype is not DML:
-            print 'The SQL is not a select statement ...'
+            # print Back.RED + '   The SQL is not a select statement ...'
+            return False
+        else:
+            return True
+
+    def isDDL(self, sql):
+        tokens = sql.tokens
+        firstToken = tokens[0]
+        if firstToken.ttype is not DDL:
+            # print Back.RED + '   The SQL is not a create statement ...'
             return False
         else:
             return True
@@ -152,7 +183,8 @@ class cli:
                     comp = None
                     value = None
                     for token in whereToekns:
-                        if token.ttype is Keyword and (token.value.upper() == 'WHERE' or token.value.upper() == 'AND' or token.value.upper() == 'OR'):
+                        if token.ttype is Keyword and (
+                                    token.value.upper() == 'WHERE' or token.value.upper() == 'AND' or token.value.upper() == 'OR'):
                             continue
                         # if token.ttype is Keyword and token.value.upper() == 'AND':
                         #     continue
@@ -175,82 +207,157 @@ class cli:
                                 rangeQueryEnd.update({id: value})
 
 
-                    # print pointQueryValue
-                    # print rangeQueryStart
-                    # print rangeQueryEnd
+                                # print pointQueryValue
+                                # print rangeQueryStart
+                                # print rangeQueryEnd
                 if pointQueryValue:
                     return pointQuery
                 if rangeQueryStart:
                     return rangeQuery
 
-                # return token.value
+    def doQuery(self, dml):
+        devices = self.getTables(dml)
+        if not devices:
+            print 'Device should be provided ...'
+            return
+        if len(devices) > 1:
+            print 'Multi-devices query is not supported now ...'
+            return
+        sensors = self.getColumns(dml)
+        predicate = self.getWhere(dml)
+        if not predicate:
+            print 'The select statement does NOT contain WHERE predicates, currently is not supported ...'
+            return None
+        query_url = 'data-points'
+        if predicate.has_key('sampleTime'):
+            key = 'sampleTime'
+            value = predicate['sampleTime']
+        elif predicate.has_key('timeRange'):
+            key = 'timeRange'
+            value = predicate['timeRange']
+            query_url = 'data-rows'
+        else:
+            print 'The query is not supported now ...'
 
-    def transfer(self, dmls):
-        for dml in dmls:
-            if not self.isDML(dml):
-                continue
+        sources = {"device": devices[0], "sensors": sensors}
+        sources[key] = value
+        select = {"sources": sources}
 
-            devices = self.getTables(dml)
-            if not devices:
-                print 'Device should be provided ...'
-                continue
-            if len(devices) > 1:
-                print 'Multi-devices query is not supported now ...'
-                continue
-            sensors = self.getColumns(dml)
-            predicate = self.getWhere(dml)
-            if not predicate:
-                print 'The select statement does NOT contain WHERE predicates, currently is not supported ...'
-                return None
-            query_url = 'data-points'
-            if predicate.has_key('sampleTime'):
-                key = 'sampleTime'
-                value = predicate['sampleTime']
-            elif predicate.has_key('timeRange'):
-                key = 'timeRange'
-                value = predicate['timeRange']
-                query_url = 'data-rows'
-            else:
-                print 'The query is not supported now ...'
+        uri = self.url + '/data/' + query_url + '?select=' + json.dumps(select)
+        self.get(uri)
 
-            sources = {"device": devices[0], "sensors": sensors}
-            sources[key] = value
-            select = {"sources": sources}
+    def transfer(self, sqls):
+        for sql in sqls:
+            if self.isDML(sql):
+                self.doQuery(sql)
+            if self.isDDL(sql):
+                self.create(sql)
 
-            selectstr = json.dumps(select)
+    def queryMeta(self, columns):
+        if len(columns) < 2:
+            print 'Please add table in your sql. Table show be in [devices ,device-type] ....'
+        else:
+            if columns[1] != 'devices'.lower() and columns[1].lower() != 'device-types':
+                print ' Usage : show table [id] .   '
+                print 'Table show be in [ devices , device-type ] ....'
+                return
+            id = ''
+            if len(columns) == 3:
+                id = columns[2]
 
-            query = requests.get(self.url + '/data/' + query_url + '?select=' + selectstr)
-            # print self.url + '/data/data-points?select=' + selectstr
-            print Fore.RED + query.url
-            # print query.text
-            response = json.loads(query.text)
-            print json.dumps(response, sort_keys=True, indent=4)
+            uri = self.url + '/' + columns[1] + '/' + id
+            self.get(uri)
 
-    def execQuery(self):
+    def create(self, sql):
+        tokens = sql.tokens
+        path = tokens[2].value.encode("utf-8").lower().strip()
+
+        uri = self.url + '/' + path
+        payload = {}
+        if path == 'device-types':
+            sensors = []
+            columns = tokens[4][1].value[1:-1].split(',')
+            for column in columns:
+                sensor = {}
+                items = column.encode("utf-8").strip().split(' ')
+                sensor['id'] = items[0].strip()
+                sensor['valueType'] = items[1].strip().upper()
+                sensors.append(sensor)
+
+                payload['id'] = tokens[4][0].value.encode("utf-8").strip()
+                payload['sensors'] = sensors
+
+        elif path == 'devices':
+            payload['id'] = tokens[4][0].value.encode("utf-8").strip()
+            payload['deviceTypeId'] = tokens[4][1].value[1:-1].strip()
+
+            length = len(tokens) + 1;
+            if length > 4:
+                for index in range(4, length, 2):
+                    key = tokens[index][0].value.encode("utf-8").strip()
+                    if key == 'tags':
+                        payload['tags'] = tokens[index][1].value.encode("utf-8").strip()[1:-1].split(',')
+                    elif key == 'attributes':
+                        attributes = []
+                        attrs = tokens[index][1].value[1:-1].split(',')
+                        for att in attrs:
+                            attribute = {}
+                            items = att.encode("utf-8").strip().split(' ')
+                            attribute['name'] = items[0].strip()
+                            attribute['attributeValue'] = items[1].strip()
+                            attributes.append(attribute)
+                        payload['attributes'] = attributes
+
+        else:
+            print ' Table ERROR .. Table show be in [ device-types ,devices ]'
+        self.post(uri, json.dumps(payload))
+
+    def excute(self):
+        hostname = socket.gethostname();
+        ip = socket.gethostbyname(hostname);
+
         while True:
-            sql = raw_input("> ")
+            sql = raw_input('[' + hostname + '@' + ip + '] > ')
+
             if sql.upper() == 'EXIT' or sql.upper() == 'BYE':
                 print 'Exit KMX CLI ...'
                 return
-            parsed = sqlparse.parse(sql)
-            self.transfer(parsed)
+
+            columns = sql.split(' ')
+            if columns[0].upper() == 'SHOW':
+                self.queryMeta(columns)
+            else:
+                parsed = sqlparse.parse(sql)
+                self.transfer(parsed)
+
 
 def run():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-u', '--url', help = 'Input HTTP REST URL of your KMX query engine.')
+    parser.add_argument('-u', '--url', help='Input HTTP REST URL of your KMX query engine.')
     args = parser.parse_args()
     url = args.url
+
     if url:
         print 'URL input is: ' + Back.GREEN + str(url)
-        CLI = cli()
-        CLI.url = url
-        CLI.execQuery()
+        client = cli()
+        client.url = url
+        client.excute()
 
     else:
         print 'You must provide an HTTP REST URL for KMX query ...'
         print 'Use -u or --url to init URL'
         print 'Use -h to get help ...'
 
+def test():
+    client = cli()
+    client.url = 'http://192.168.130.2/cloud/qa3/kmx/v2'
+    # parsed = sqlparse.parse("create devices d(dt) tags(a,b,c,d) attributes(a b,c d)")
+    parsed = sqlparse.parse(
+        "select WCNVConver_chopper_igbt_temp,WCNVPwrReactInstMagf from GW150001 where iso > '2015-04-24T20:10:00.000%2B08:00' and iso < '2015-05-01T07:59:59.000%2B08:00'")
+
+    client.transfer(parsed)
+
 
 if __name__ == '__main__':
     run()
+    # test()
