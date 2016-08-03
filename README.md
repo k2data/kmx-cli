@@ -84,7 +84,7 @@ kmx_cli -u http://192.168.130.2/cloud/qa3/kmx/v2
 ```
 or
 ```
-kmx_cli --url http://192.168.130.2/cloud/qa3/kmx/v2
+kmx_cli --url http://192.168.130.2/cloud/qa3/kmx/v2```
 ```
 Now you are ready to go.
 ```
@@ -112,3 +112,37 @@ Use 'bye' or 'exit' to quit kmx-cli
 > bye
 Exit KMX CLI ...
 ```
+
+### query metadata
+support query metadata from 2016.08.03
+
+```
+show device-types|devices [id]
+```
+example:
+```
+show device-types         # query all device-types
+show devices deviceid     # query devices who's id = deviceid
+```
+
+### create metadata
+support create metadata from 2016.08.03
+
+#### create device-type
+```
+create device-types id(s1 valueType,s2 valueType, ......)
+```
+id is your deviceTypeId
+s1,s2,....sn are sensorId
+valueType is sensor's valueType and must be in [ STRING,DOUBLE,FLOAT,INT,LONG,BOOLEAN]
+
+#### create devices
+```
+create devices id(deviceTypeId) tags(t1,t2,...) attributes(k1 v1,k2 v2,....)
+```
+id is your deviceId
+deviceTypeId is the deviceType that the device related to.
+tags should be separated by ,
+attributes must be separated by , . attribute's key and value separated by space
+
+
