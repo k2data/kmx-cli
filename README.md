@@ -88,3 +88,29 @@ where
 and
     iso<'2016-07-28T10:13:52.644%2B08:00'
 ```
+
+## Getting started
+
+### Installation
+```
+git clone https://github.com/k2data/kmx-cli.git -b dev
+python setup.py install
+```
+
+### Give it a try
+The only thing you have to do is:
+Use URL of your HTTP RESTful query as parameter for kmx-cli.
+```
+kmx_cli -u http://192.168.130.2/cloud/qa3/kmx/v2
+```
+or
+```
+kmx_cli --url http://192.168.130.2/cloud/qa3/kmx/v2
+```
+Now you are ready to go.
+
+Use 'bye' or 'exit' to quit kmx-cli
+```
+> bye
+Exit KMX CLI ...
+```
