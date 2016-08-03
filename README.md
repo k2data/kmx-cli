@@ -33,27 +33,6 @@ where
     timestamp=1469672032196
 ```
 
-CLI usage is:
-```
-$ ./cli.py -u http://192.168.130.2/cloud/qa3/kmx/v2
-URL input is: http://192.168.130.2/cloud/qa3/kmx/v2
-KMX CLI is running ...
-> select DOUBLE_dt_sync_02_dWavQ from device_sync_01_dWavQ where timestamp=1469672032196
-http://192.168.130.2/cloud/qa3/kmx/v2/data/data-points?select=%7B%22sources%22:%20%7B%22device%22:%20%22device_sync_01_dWavQ%22,%20%22sensors%22:%20[%22DOUBLE_dt_sync_02_dWavQ%22],%20%22sampleTime%22:%20%7B%22timestamp%22:%20%221469672032196%22%7D%7D%7D
-{
-    "code": 0,
-    "dataPoints": [
-        {
-            "device": "device_sync_01_dWavQ",
-            "sensor": "DOUBLE_dt_sync_02_dWavQ",
-            "timestamp": 1469672032196,
-            "value": 0.0
-        }
-    ],
-    "message": ""
-}
-```
-
 ## KMX Data Range Query
 KMX data range query is more complicate:
 ```
@@ -108,6 +87,25 @@ or
 kmx_cli --url http://192.168.130.2/cloud/qa3/kmx/v2
 ```
 Now you are ready to go.
+```
+$ kmx_cli -u http://192.168.130.2/cloud/qa3/kmx/v2
+URL input is: http://192.168.130.2/cloud/qa3/kmx/v2
+KMX CLI is running ...
+> select DOUBLE_dt_sync_02_dWavQ from device_sync_01_dWavQ where timestamp=1469672032196
+http://192.168.130.2/cloud/qa3/kmx/v2/data/data-points?select=%7B%22sources%22:%20%7B%22device%22:%20%22device_sync_01_dWavQ%22,%20%22sensors%22:%20[%22DOUBLE_dt_sync_02_dWavQ%22],%20%22sampleTime%22:%20%7B%22timestamp%22:%20%221469672032196%22%7D%7D%7D
+{
+    "code": 0,
+    "dataPoints": [
+        {
+            "device": "device_sync_01_dWavQ",
+            "sensor": "DOUBLE_dt_sync_02_dWavQ",
+            "timestamp": 1469672032196,
+            "value": 0.0
+        }
+    ],
+    "message": ""
+}
+```
 
 Use 'bye' or 'exit' to quit kmx-cli
 ```
