@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sqlparse
-from sqlparse.tokens import DML, Keyword, Whitespace, Wildcard, Comparison
+from sqlparse.tokens import DML,Keyword, Whitespace, Wildcard, Comparison
 from sqlparse.sql import IdentifierList, Identifier, Where
 from sqlparse.sql import Comparison as sqlcomp
 
@@ -10,6 +10,7 @@ import requests
 import json
 import argparse
 import copy
+import socket
 
 from colorama import init, Fore, Back
 init(autoreset=True)
@@ -24,14 +25,13 @@ class cli:
         tokens = sql.tokens
         firstToken = tokens[0]
         if firstToken.ttype is not DML:
-            print 'The SQL is not a select statement ...'
+            print Back.RED + '   The SQL is not a select statement ...'
             return False
         else:
             return True
 
     def getColumnAndTables(self, sql):
         ids = []
-        # print sql.tokens
         for token in sql.tokens:
             if isinstance(token, IdentifierList):
                 for identifier in token.get_identifiers():
@@ -124,8 +124,7 @@ class cli:
                     for token in whereToekns:
                         if token.ttype is Keyword and (token.value.upper() == 'WHERE' or token.value.upper() == 'AND' or token.value.upper() == 'OR'):
                             continue
-                        # if token.ttype is Keyword and token.value.upper() == 'AND':
-                        #     continue
+
                         if token.ttype is Whitespace:
                             continue
 
@@ -144,10 +143,6 @@ class cli:
                             elif comp == '<':
                                 rangeQueryEnd.update({id: value})
 
-
-                    # print pointQueryValue
-                    # print rangeQueryStart
-                    # print rangeQueryEnd
                 if pointQueryValue:
                     return pointQuery
                 if rangeQueryStart:
@@ -188,28 +183,52 @@ class cli:
             select = {"sources": sources}
 
             selectstr = json.dumps(select)
+            uri = self.url + '/data/' + query_url + '?select=' + selectstr
+            self.request(uri)
 
-            query = requests.get(self.url + '/data/' + query_url + '?select=' + selectstr)
-            # print self.url + '/data/data-points?select=' + selectstr
-            print Fore.RED + query.url
-            # print query.text
-            response = json.loads(query.text)
-            print json.dumps(response, sort_keys=True, indent=4)
+    def request(self,uri):
+        response = requests.get(uri)
+        print Fore.RED + uri
+        payload = json.loads(response.text)
+        print json.dumps(payload, sort_keys=True, indent=4)
+
+    def queryMeta(self, columns):
+        if len(columns) < 2 :
+            print 'Please add table in your sql. Table show be in [devices ,device-type] ....'
+        else:
+            if columns[1] != 'devices'.lower() and columns[1].lower() != 'device-types' :
+                print ' Usage : show table [id] .   '
+                print 'Table show be in [devices ,device-type] ....'
+                return
+            id = ''
+            if len(columns) == 3:
+                id = columns[2]
+
+            uri = self.url + '/' + columns[1] + '/' + id
+            self.request(uri)
 
     def execQuery(self):
+        hostname = socket.gethostname();
+        ip = socket.gethostbyname(hostname);
         while True:
-            sql = raw_input("> ")
+            sql = raw_input(Back.YELLOW + '[' + hostname + '@' + ip + '] > ')
             if sql.upper() == 'EXIT' or sql.upper() == 'BYE':
                 print 'Exit KMX CLI ...'
                 return
-            parsed = sqlparse.parse(sql)
-            self.transfer(parsed)
+
+            columns = sql.split(' ')
+            if columns[0].upper() == 'SHOW':
+                self.queryMeta(columns)
+            else:
+                parsed = sqlparse.parse(sql)
+                self.transfer(parsed)
 
 def run():
     parser = argparse.ArgumentParser()
     parser.add_argument('-u', '--url', help = 'Input HTTP REST URL of your KMX query engine.')
     args = parser.parse_args()
     url = args.url
+    url = 'http://192.168.130.2/cloud/qa3/kmx/v2'
     if url:
         print 'URL input is: ' + Back.GREEN + str(url)
         CLI = cli()
@@ -224,3 +243,4 @@ def run():
 
 if __name__ == '__main__':
     run()
+
