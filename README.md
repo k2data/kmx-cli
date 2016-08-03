@@ -76,7 +76,7 @@ git clone https://github.com/k2data/kmx-cli.git -b dev
 python setup.py install
 ```
 
-### Give it a try
+### Query data
 The only thing you have to do is:
 Use URL of your HTTP RESTful query as parameter for kmx-cli.
 ```
@@ -111,6 +111,17 @@ Use 'bye' or 'exit' to quit kmx-cli
 ```
 > bye
 Exit KMX CLI ...
+```
+
+#### Relative time support
+kmx-cli support relative time for human readable.
+```
+select DOUBLE_dt_sync_02_dWavQ from device_sync_01_dWavQ where timestamp>'now-1w' and timestamp<'now'
+select DOUBLE_dt_sync_02_dWavQ from device_sync_01_dWavQ where iso>'now-1h' and iso<'now'
+```
+relative time format is:
+```
+^(now)(-)([0-9]+)([s,m,h,d,w]{1})$
 ```
 
 ### query metadata
