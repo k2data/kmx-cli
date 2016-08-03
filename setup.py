@@ -16,7 +16,8 @@ setup(name="kmx_cli",
       install_requires=[
           'colorama==0.3.1',
           'sqlparse==0.2.0',
-          'requests==2.7.0'
+          'requests==2.7.0',
+          'arrow==0.8.0'
       ],
       entry_points={
           'console_scripts': [
