@@ -268,6 +268,28 @@ class cli:
             uri = self.url + '/' + columns[1] + '/' + id
             self.get(uri)
 
+    def parseAttr(self,payload,tokens):
+        length = len(tokens) + 1;
+        if length > 4:
+            for index in range(4, length, 2):
+                key = tokens[index][0].value.encode("utf-8").strip()
+                if key == 'tags':
+                    payload['tags'] = tokens[index][1].value.encode("utf-8").strip()[1:-1].split(',')
+                elif key == 'attributes':
+                    attributes = []
+                    attrs = tokens[index][1].value[1:-1].split(',')
+                    for att in attrs:
+                        attribute = {}
+                        items = att.encode("utf-8").strip().split(' ')
+                        attribute['name'] = items[0].strip()
+                        if len(items) >= 2:
+                            attribute['attributeValue'] = items[1].strip()
+                        else:
+                            print Back.YELLOW + 'attribute:' + items[0] + ' have no value...'
+                        attributes.append(attribute)
+                    payload['attributes'] = attributes
+        return payload
+
     def create(self, sql):
         tokens = sql.tokens
         path = tokens[2].value.encode("utf-8").lower().strip()
@@ -280,6 +302,9 @@ class cli:
             for column in columns:
                 sensor = {}
                 items = column.encode("utf-8").strip().split(' ')
+                if len(items) < 2 :
+                    print Back.RED + 'sensor : ' + items[0] + ' should have valueType...'
+                    return
                 sensor['id'] = items[0].strip()
                 sensor['valueType'] = items[1].strip().upper()
                 sensors.append(sensor)
@@ -291,25 +316,10 @@ class cli:
             payload['id'] = tokens[4][0].value.encode("utf-8").strip()
             payload['deviceTypeId'] = tokens[4][1].value[1:-1].strip()
 
-            length = len(tokens) + 1;
-            if length > 4:
-                for index in range(4, length, 2):
-                    key = tokens[index][0].value.encode("utf-8").strip()
-                    if key == 'tags':
-                        payload['tags'] = tokens[index][1].value.encode("utf-8").strip()[1:-1].split(',')
-                    elif key == 'attributes':
-                        attributes = []
-                        attrs = tokens[index][1].value[1:-1].split(',')
-                        for att in attrs:
-                            attribute = {}
-                            items = att.encode("utf-8").strip().split(' ')
-                            attribute['name'] = items[0].strip()
-                            attribute['attributeValue'] = items[1].strip()
-                            attributes.append(attribute)
-                        payload['attributes'] = attributes
-
         else:
             print ' Table ERROR .. Table show be in [ device-types ,devices ]'
+            return
+        payload = self.parseAttr(payload,tokens)
         self.post(uri, json.dumps(payload))
 
     def excute(self):
@@ -351,13 +361,12 @@ def run():
 def test():
     client = cli()
     client.url = 'http://192.168.130.2/cloud/qa3/kmx/v2'
+    parsed = sqlparse.parse("create device-types dt_test(s1 string,s2 ) tags(a,b,c,d) attributes(ab,c d)")
     # parsed = sqlparse.parse("create devices d(dt) tags(a,b,c,d) attributes(a b,c d)")
-    parsed = sqlparse.parse(
-        "select WCNVConver_chopper_igbt_temp,WCNVPwrReactInstMagf from GW150001 where iso > '2015-04-24T20:10:00.000%2B08:00' and iso < '2015-05-01T07:59:59.000%2B08:00'")
-
+    # parsed = sqlparse.parse("select WCNVConver_chopper_igbt_temp,WCNVPwrReactInstMagf from GW150001 where iso > '2015-04-24T20:10:00.000%2B08:00' and iso < '2015-05-01T07:59:59.000%2B08:00'")
     client.transfer(parsed)
 
 
 if __name__ == '__main__':
-    run()
-    # test()
+    # run()
+    test()
