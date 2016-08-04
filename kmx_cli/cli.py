@@ -246,8 +246,7 @@ class cli:
             elif self.isKeyword(statement):
                 query_meta(self.url,statement)
 
-
-    def excute(self):
+    def execute(self):
         hostname = socket.gethostname();
         ip = socket.gethostbyname(hostname);
 
@@ -258,8 +257,8 @@ class cli:
                 print 'Exit KMX CLI ...'
                 return
 
-        parsed = sqlparse.parse(sql)
-        self.transfer(parsed)
+            parsed = sqlparse.parse(sql)
+            self.transfer(parsed)
 
 
 def run():
@@ -272,7 +271,7 @@ def run():
         print 'URL input is: ' + Back.GREEN + str(url)
         client = cli()
         client.url = url
-        client.excute()
+        client.execute()
 
     else:
         print 'You must provide an HTTP REST URL for KMX query ...'
