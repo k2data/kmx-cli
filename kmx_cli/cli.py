@@ -12,85 +12,83 @@ import argparse
 import copy
 import socket
 
-from tabulate import tabulate
+# from tabulate import tabulate
 from colorama import init, Fore, Back
 import arrow
 import re
+
+from request import get, post
+from metadata import query_meta, create_meta
+from pretty import pretty, pretty_meta_list, pretty_meta
 
 init(autoreset=True)
 
 headers = {"Content-Type": "application/json"}
 
 
-def formatted_output(query_result, fmt='psql'):
-    ''' @param: query_result is a dict
-        @param: fmt may be 'plain', 'simple', 'grid', 'fancy_grid',
-                'psql', 'pipe', 'orgtbl', 'rst', 'html' etc
-                detail see https://pypi.python.org/pypi/tabulate
-    '''
-    result = []
-    headers = ['device', 'ts', 'sensorName', 'sensorValue']
-    non_exist = '-'  # show when key does not exist
-    err_msg = query_result['message']
-
-    if 'dataRows' in query_result.keys():
-        recs = query_result['dataRows']
-        for rec in recs:
-            device = rec.get('device', non_exist)
-            ts = rec.get('iso', non_exist)
-            if 'dataPoints' in rec.keys():
-                sensor_recs = rec['dataPoints']
-                for sensor in sensor_recs:
-                    result.append((device, ts, sensor.get('sensor', non_exist), sensor.get('value', non_exist)))
-        if result:
-            print tabulate(result, headers, tablefmt=fmt)
-        print err_msg
-    elif 'dataPoints' in query_result.keys():
-        for rec in query_result['dataPoints']:
-            result.append((rec['device'], rec.get('timestamp', non_exist), rec.get('sensor', non_exist),rec.get('value', non_exist)))
-        if result:
-            print tabulate(result, headers, tablefmt=fmt)
-        print err_msg
-    else :
-        print json.dumps(query_result, sort_keys=True, indent=4) + '\n'
+# def formatted_output(query_result, fmt='psql'):
+#     ''' @param: query_result is a dict
+#         @param: fmt may be 'plain', 'simple', 'grid', 'fancy_grid',
+#                 'psql', 'pipe', 'orgtbl', 'rst', 'html' etc
+#                 detail see https://pypi.python.org/pypi/tabulate
+#     '''
+#     result = []
+#     headers = ['device', 'ts', 'sensorName', 'sensorValue']
+#     non_exist = '-'  # show when key does not exist
+#     err_msg = query_result['message']
+#
+#     if 'dataRows' in query_result.keys():
+#         recs = query_result['dataRows']
+#         for rec in recs:
+#             device = rec.get('device', non_exist)
+#             ts = rec.get('iso', non_exist)
+#             if 'dataPoints' in rec.keys():
+#                 sensor_recs = rec['dataPoints']
+#                 for sensor in sensor_recs:
+#                     result.append((device, ts, sensor.get('sensor', non_exist), sensor.get('value', non_exist)))
+#         if result:
+#             print tabulate(result, headers, tablefmt=fmt)
+#         print err_msg
+#     elif 'dataPoints' in query_result.keys():
+#         for rec in query_result['dataPoints']:
+#             result.append((rec['device'], rec.get('timestamp', non_exist), rec.get('sensor', non_exist),rec.get('value', non_exist)))
+#         if result:
+#             print tabulate(result, headers, tablefmt=fmt)
+#         print err_msg
+#     else :
+#         print json.dumps(query_result, sort_keys=True, indent=4) + '\n'
 
 class cli:
     def __init__(self):
         print 'KMX CLI is running ...'
         # self.url = 'http://192.168.130.2/cloud/qa3/kmx/v2'
 
-    def get(self, uri):
-        response = requests.get(uri)
-        print Fore.RED + uri
-        payload = json.loads(response.text)
-        formatted_output(payload)
-        # print json.dumps(payload, sort_keys=True, indent=4) + '\n'
+    # def get(self, uri):
+    #     response = requests.get(uri)
+    #     print Fore.RED + uri
+    #     payload = json.loads(response.text)
+    #     formatted_output(payload)
+    #     # print json.dumps(payload, sort_keys=True, indent=4) + '\n'
+    #
+    # def post(self, uri, payload):
+    #     response = requests.post(uri, headers=headers, data=payload)
+    #     responsePayload = json.loads(response.text)
+    #
+    #     print Fore.RED + uri
+    #     print Fore.CYAN + payload
+    #     print Fore.MAGENTA + json.dumps(responsePayload, sort_keys=True, indent=4) + '\n'
 
-    def post(self, uri, payload):
-        response = requests.post(uri, headers=headers, data=payload)
-        responsePayload = json.loads(response.text)
+    def isDML(self, statement):
+        return statement.tokens[0].ttype is DML
 
-        print Fore.RED + uri
-        print Fore.CYAN + payload
-        print Fore.MAGENTA + json.dumps(responsePayload, sort_keys=True, indent=4) + '\n'
 
-    def isDML(self, sql):
-        tokens = sql.tokens
-        firstToken = tokens[0]
-        if firstToken.ttype is not DML:
-            # print Back.RED + '   The SQL is not a select statement ...'
-            return False
-        else:
-            return True
+    def isDDL(self, statement):
+        return statement.tokens[0].ttype is DDL
 
-    def isDDL(self, sql):
-        tokens = sql.tokens
-        firstToken = tokens[0]
-        if firstToken.ttype is not DDL:
-            # print Back.RED + '   The SQL is not a create statement ...'
-            return False
-        else:
-            return True
+
+    def isKeyword(self, statement):
+        return statement.tokens[0].ttype is Keyword
+
 
     def getColumnAndTables(self, sql):
         ids = []
@@ -248,83 +246,18 @@ class cli:
         select = {"sources": sources}
 
         uri = self.url + '/data/' + query_url + '?select=' + json.dumps(select)
-        self.get(uri)
+        response = get(uri)
+        pretty(json.loads(response.text))
 
-    def transfer(self, sqls):
-        for sql in sqls:
-            if self.isDML(sql):
-                self.doQuery(sql)
-            if self.isDDL(sql):
-                self.create(sql)
+    def transfer(self, statements):
+        for statement in statements:
+            if self.isDML(statement):
+                self.doQuery(statement)
+            elif self.isDDL(statement):
+                create_meta(self.url,statement)
+            elif self.isKeyword(statement):
+                query_meta(self.url,statement)
 
-    def queryMeta(self, columns):
-        if len(columns) < 2:
-            print 'Please add table in your sql. Table show be in [devices ,device-type] ....'
-        else:
-            if columns[1] != 'devices'.lower() and columns[1].lower() != 'device-types':
-                print ' Usage : show table [id] .   '
-                print 'Table show be in [ devices , device-type ] ....'
-                return
-            id = ''
-            if len(columns) == 3:
-                id = columns[2]
-
-            uri = self.url + '/' + columns[1] + '/' + id
-            self.get(uri)
-
-    def parseAttr(self,payload,tokens):
-        length = len(tokens) + 1;
-        if length > 4:
-            for index in range(4, length, 2):
-                key = tokens[index][0].value.encode("utf-8").strip()
-                if key == 'tags':
-                    payload['tags'] = tokens[index][1].value.encode("utf-8").strip()[1:-1].split(',')
-                elif key == 'attributes':
-                    attributes = []
-                    attrs = tokens[index][1].value[1:-1].split(',')
-                    for att in attrs:
-                        attribute = {}
-                        items = att.encode("utf-8").strip().split(' ')
-                        attribute['name'] = items[0].strip()
-                        if len(items) >= 2:
-                            attribute['attributeValue'] = items[1].strip()
-                        else:
-                            print Back.YELLOW + 'attribute:' + items[0] + ' have no value...'
-                        attributes.append(attribute)
-                    payload['attributes'] = attributes
-        return payload
-
-    def create(self, sql):
-        tokens = sql.tokens
-        path = tokens[2].value.encode("utf-8").lower().strip()
-
-        uri = self.url + '/' + path
-        payload = {}
-        if path == 'device-types':
-            sensors = []
-            columns = tokens[4][1].value[1:-1].split(',')
-            for column in columns:
-                sensor = {}
-                items = column.encode("utf-8").strip().split(' ')
-                if len(items) < 2 :
-                    print Back.RED + 'sensor : ' + items[0] + ' should have valueType...'
-                    return
-                sensor['id'] = items[0].strip()
-                sensor['valueType'] = items[1].strip().upper()
-                sensors.append(sensor)
-
-                payload['id'] = tokens[4][0].value.encode("utf-8").strip()
-                payload['sensors'] = sensors
-
-        elif path == 'devices':
-            payload['id'] = tokens[4][0].value.encode("utf-8").strip()
-            payload['deviceTypeId'] = tokens[4][1].value[1:-1].strip()
-
-        else:
-            print ' Table ERROR .. Table show be in [ device-types ,devices ]'
-            return
-        payload = self.parseAttr(payload,tokens)
-        self.post(uri, json.dumps(payload))
 
     def excute(self):
         hostname = socket.gethostname();
@@ -337,12 +270,8 @@ class cli:
                 print 'Exit KMX CLI ...'
                 return
 
-            columns = sql.split(' ')
-            if columns[0].upper() == 'SHOW':
-                self.queryMeta(columns)
-            else:
-                parsed = sqlparse.parse(sql)
-                self.transfer(parsed)
+        parsed = sqlparse.parse(sql)
+        self.transfer(parsed)
 
 
 def run():
@@ -362,15 +291,7 @@ def run():
         print 'Use -u or --url to init URL'
         print 'Use -h to get help ...'
 
-def test():
-    client = cli()
-    client.url = 'http://192.168.130.2/cloud/qa3/kmx/v2'
-    parsed = sqlparse.parse("create device-types dt_test(s1 string,s2 ) tags(a,b,c,d) attributes(ab,c d)")
-    # parsed = sqlparse.parse("create devices d(dt) tags(a,b,c,d) attributes(a b,c d)")
-    # parsed = sqlparse.parse("select WCNVConver_chopper_igbt_temp,WCNVPwrReactInstMagf from GW150001 where iso > '2015-04-24T20:10:00.000%2B08:00' and iso < '2015-05-01T07:59:59.000%2B08:00'")
-    client.transfer(parsed)
-
 
 if __name__ == '__main__':
     run()
-    # test()
+
