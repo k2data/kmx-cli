@@ -1,14 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from request import get,post
-from colorama import Fore, Back
+from colorama import Back
 import json
-import sqlparse
-from sqlparse.tokens import DML, DDL, Keyword, Whitespace, Wildcard, Comparison
-from sqlparse.sql import IdentifierList, Identifier, Where
-from sqlparse.sql import Comparison as sqlcomp
-
+from request import get,post
 from pretty import pretty_meta, pretty_meta_list
 
 

@@ -2,9 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import requests
-import json
 from colorama import Fore
-from pretty import pretty, pretty_meta_list
 
 headers = {"Content-Type": "application/json"}
 

@@ -1,5 +1,7 @@
-import sqlparse
-from sqlparse.tokens import DML, DDL, Keyword, Whitespace, Wildcard, Comparison
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from sqlparse.tokens import Keyword, Whitespace, Wildcard, Comparison
 from sqlparse.sql import IdentifierList, Identifier, Where
 from sqlparse.sql import Comparison as sqlcomp
 

@@ -3,7 +3,7 @@
 
 import json
 from tabulate import tabulate
-from colorama import Fore, Back
+from colorama import Fore
 
 
 def pretty_page(pages):
