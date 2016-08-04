@@ -138,7 +138,7 @@ class cli:
             return relativeStr
         if relativeStr.upper() == 'NOW':
             if format.upper() == 'ISO':
-                return arrow.now().format('YYYY-MM-DDTHH:mm:ss.SSSZZ')
+                return arrow.now().format('YYYY-MM-DDTHH:mm:ss.SSSZZ').replace("+","%2B")
             elif format.upper() == 'TIMESTAMP':
                 return int(round(arrow.now().float_timestamp * 1000))
         else:
@@ -160,7 +160,7 @@ class cli:
                 param = {unit:int("%s%s" % (segments[0][1],segments[0][2]))}
                 print param
                 if format.upper() == 'ISO':
-                    return arrow.now().replace(**param).format('YYYY-MM-DDTHH:mm:ss.SSSZZ')
+                    return arrow.now().replace(**param).format('YYYY-MM-DDTHH:mm:ss.SSSZZ').replace("+","%2B")
                 elif format.upper() == 'TIMESTAMP':
                     return int(round(arrow.now().replace(**param).float_timestamp * 1000))
             else:
@@ -206,7 +206,7 @@ class cli:
                                 # print ctoken.value
                                 value = ctoken.value
                         # tell if comparion is "=", if yes, the query is a point query
-                        value = str(value).replace("'", "")
+                        value = str(value).replace("'", "").replace("+","%2B")
                         # If time is relative time
                         if value.upper().startswith('NOW'):
                             value = self.relativeTimeParser(value, id)
@@ -239,7 +239,7 @@ class cli:
                             value = token.value
 
                         if id and value:
-                            value = str(value).replace("'", "")
+                            value = str(value).replace("'", "").replace("+","%2B")
                             # If time is relative time
                             if value.upper().startswith('NOW'):
                                 value = self.relativeTimeParser(value, id)
