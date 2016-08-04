@@ -168,7 +168,6 @@ class cli:
                 return relativeStr
 
     def getWhere(self, sql):
-        # if self.isDML(sql) == False:
         if not self.isDML(sql):
             return None
         tokens = sql.tokens
@@ -183,72 +182,36 @@ class cli:
                 rangeQuery = {"timeRange": {"start": rangeQueryStart, "end": rangeQueryEnd}}
 
                 whereToekns = token.tokens
-                # print whereToekns
-                # If there is comparison token in where token
-                hasComparisonToken = False
+
                 for token in whereToekns:
                     if isinstance(token, sqlcomp):
-                        hasComparisonToken = True
-                        # print token.value
                         comparisonTokens = token.tokens
-                        # id = None
-                        # comp = None
-                        # value = None
                         for ctoken in comparisonTokens:
-                            # print ctoken.ttype
                             if isinstance(ctoken, Identifier):
-                                # print ctoken.value
                                 id = ctoken.value
                             elif ctoken.ttype is Comparison:
-                                # print ctoken.value
                                 comp = ctoken.value
                             elif ctoken.ttype is not Whitespace:
-                                # print ctoken.value
                                 value = ctoken.value
-                        # tell if comparion is "=", if yes, the query is a point query
+
+                        # tell ts format is timestamp or iso
+                        if value.startswith("'") and value.endswith("'"):
+                            id = 'iso'
+                        else:
+                            id = 'timestamp'
+
                         value = str(value).replace("'", "").replace("+","%2B")
+
                         # If time is relative time
                         if value.upper().startswith('NOW'):
-                            value = self.relativeTimeParser(value, id)
-                        # print value
+                            value = self.relativeTimeParser(value, 'iso')
+
                         if comp == '=':
                             pointQueryValue.update({id: value})
                         elif comp == '>':
                             rangeQueryStart.update({id: value})
                         elif comp == '<':
                             rangeQueryEnd.update({id: value})
-
-                if not hasComparisonToken:
-                    id = None
-                    comp = None
-                    value = None
-                    for token in whereToekns:
-                        if token.ttype is Keyword and (
-                                    token.value.upper() == 'WHERE' or token.value.upper() == 'AND' or token.value.upper() == 'OR'):
-                            continue
-                        # if token.ttype is Keyword and token.value.upper() == 'AND':
-                        #     continue
-                        if token.ttype is Whitespace:
-                            continue
-
-                        if token.ttype is Keyword:
-                            id = token.value
-                        elif token.ttype is Comparison:
-                            comp = token.value
-                        elif token.ttype is not Whitespace:
-                            value = token.value
-
-                        if id and value:
-                            value = str(value).replace("'", "").replace("+","%2B")
-                            # If time is relative time
-                            if value.upper().startswith('NOW'):
-                                value = self.relativeTimeParser(value, id)
-                            if comp == '=':
-                                pointQueryValue.update({id: value})
-                            elif comp == '>':
-                                rangeQueryStart.update({id: value})
-                            elif comp == '<':
-                                rangeQueryEnd.update({id: value})
 
 
                 if pointQueryValue:

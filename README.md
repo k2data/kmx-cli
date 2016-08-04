@@ -30,7 +30,7 @@ select
 from
     device_sync_01_dWavQ
 where
-    timestamp=1469672032196
+    ts=1469672032196
 ```
 
 ## KMX Data Range Query
@@ -63,9 +63,9 @@ select
 from
     device_sync_01_dWavQ
 where
-    iso>'2016-07-28T10:13:52.196%2B08:00'
+    ts>'2016-07-28T10:13:52.196+08:00'
 and
-    iso<'2016-07-28T10:13:52.644%2B08:00'
+    ts<'2016-07-28T10:13:52.644+08:00'
 ```
 
 ## Getting started
@@ -84,14 +84,16 @@ kmx_cli -u http://192.168.130.2/cloud/qa3/kmx/v2
 ```
 or
 ```
-kmx_cli --url http://192.168.130.2/cloud/qa3/kmx/v2```
+kmx_cli --url http://192.168.130.2/cloud/qa3/kmx/v2
 ```
 Now you are ready to go.
+
+*Note: In Where predicate, there is only ONE keyword 'ts'. Timestamp, iso and relative time are all supported and can be mix used together.*
 ```
 $ kmx_cli -u http://192.168.130.2/cloud/qa3/kmx/v2
 URL input is: http://192.168.130.2/cloud/qa3/kmx/v2
 KMX CLI is running ...
-> select DOUBLE_dt_sync_02_dWavQ from device_sync_01_dWavQ where timestamp=1469672032196
+> select DOUBLE_dt_sync_02_dWavQ from device_sync_01_dWavQ where ts=1469672032196
 http://192.168.130.2/cloud/qa3/kmx/v2/data/data-points?select=%7B%22sources%22:%20%7B%22device%22:%20%22device_sync_01_dWavQ%22,%20%22sensors%22:%20[%22DOUBLE_dt_sync_02_dWavQ%22],%20%22sampleTime%22:%20%7B%22timestamp%22:%20%221469672032196%22%7D%7D%7D
 {
     "code": 0,
@@ -116,8 +118,8 @@ Exit KMX CLI ...
 #### Relative time support
 kmx-cli support relative time for human readable.
 ```
-select DOUBLE_dt_sync_02_dWavQ from device_sync_01_dWavQ where timestamp>'now-1w' and timestamp<'now'
-select DOUBLE_dt_sync_02_dWavQ from device_sync_01_dWavQ where iso>'now-1h' and iso<'now'
+select DOUBLE_dt_sync_02_dWavQ from device_sync_01_dWavQ where ts>'now-1w' and ts<'now'
+select DOUBLE_dt_sync_02_dWavQ from device_sync_01_dWavQ where ts>'now-1h' and ts<'now'
 ```
 relative time format is:
 ```
