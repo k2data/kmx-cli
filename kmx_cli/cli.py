@@ -2,28 +2,16 @@
 # -*- coding: utf-8 -*-
 
 import sqlparse
-from sqlparse.tokens import DML, DDL, Keyword, Whitespace, Wildcard, Comparison
-from sqlparse.sql import IdentifierList, Identifier, Where
-from sqlparse.sql import Comparison as sqlcomp
+from sqlparse.tokens import DML, DDL, Keyword
 
-import requests
-import json
 import argparse
-import copy
 import socket
 
-# from tabulate import tabulate
 from colorama import init, Fore, Back
-import arrow
-import re
-
-from request import get, post
 from metadata import query_meta, create_meta
-from pretty import pretty, pretty_meta_list, pretty_meta
+from query import dyn_query
 
 init(autoreset=True)
-
-headers = {"Content-Type": "application/json"}
 
 
 # def formatted_output(query_result, fmt='psql'):
@@ -90,169 +78,169 @@ class cli:
         return statement.tokens[0].ttype is Keyword
 
 
-    def getColumnAndTables(self, sql):
-        ids = []
-        # print sql.tokens
-        for token in sql.tokens:
-            if isinstance(token, IdentifierList):
-                for identifier in token.get_identifiers():
-                    ids.append(identifier.get_name())
-            elif isinstance(token, Identifier):
-                ids.append(token.value)
-            elif token.ttype is Keyword and token.value.upper() == 'FROM':
-                ids.append(token.value)
-            elif token.ttype is Wildcard:
-                ids.append(token.value)
-        return ids
-
-    def getColumns(self, sql):
-        if not self.isDML(sql):
-            return None
-        ids = self.getColumnAndTables(sql)
-        columns = []
-        for id in ids:
-            if id.upper() == 'FROM':
-                break
-            columns.append(id)
-        return columns
-
-    def getTables(self, sql):
-        if not self.isDML(sql):
-            return None
-        ids = self.getColumnAndTables(sql)
-        columns = self.getColumns(sql)
-        tables = copy.deepcopy(ids)
-        for id in ids:
-            if id.upper() <> 'FROM':
-                tables.remove(id)
-            else:
-                tables.remove(id)
-                break
-        return tables
-
-    def relativeTimeParser(self, relativeStr, format):
-        if format.upper() <> 'ISO' and format.upper() <> 'TIMESTAMP':
-            print 'The time format is either not ISO or TIMESTAMP'
-            return relativeStr
-        if relativeStr.upper() == 'NOW':
-            if format.upper() == 'ISO':
-                return arrow.now().format('YYYY-MM-DDTHH:mm:ss.SSSZZ').replace("+","%2B")
-            elif format.upper() == 'TIMESTAMP':
-                return int(round(arrow.now().float_timestamp * 1000))
-        else:
-            regex = '^(now)(-)([0-9]+)([s,m,h,d,w]{1})$'
-            pattern = re.compile(regex)
-            if pattern.match(str(relativeStr)):
-                segments = pattern.findall(str(relativeStr))
-                if segments[0][3] == 's':
-                    unit = 'seconds'
-                elif segments[0][3] == 'm':
-                    unit = 'minutes'
-                elif segments[0][3] == 'h':
-                    unit = 'hours'
-                elif segments[0][3] == 'd':
-                    unit = 'days'
-                elif segments[0][3] == 'w':
-                    unit = 'weeks'
-                replaceStr = unit + "=%s%s" % (segments[0][1],segments[0][2])
-                param = {unit:int("%s%s" % (segments[0][1],segments[0][2]))}
-                print param
-                if format.upper() == 'ISO':
-                    return arrow.now().replace(**param).format('YYYY-MM-DDTHH:mm:ss.SSSZZ').replace("+","%2B")
-                elif format.upper() == 'TIMESTAMP':
-                    return int(round(arrow.now().replace(**param).float_timestamp * 1000))
-            else:
-                print 'The relative time format is wrong ...'
-                return relativeStr
-
-    def getWhere(self, sql):
-        if not self.isDML(sql):
-            return None
-        tokens = sql.tokens
-        for token in tokens:
-            if isinstance(token, Where):
-                # print token.value
-                pointQueryValue = {}
-                pointQuery = {"sampleTime": pointQueryValue}
-
-                rangeQueryStart = {}
-                rangeQueryEnd = {}
-                rangeQuery = {"timeRange": {"start": rangeQueryStart, "end": rangeQueryEnd}}
-
-                whereToekns = token.tokens
-
-                for token in whereToekns:
-                    if isinstance(token, sqlcomp):
-                        comparisonTokens = token.tokens
-                        for ctoken in comparisonTokens:
-                            if isinstance(ctoken, Identifier):
-                                id = ctoken.value
-                            elif ctoken.ttype is Comparison:
-                                comp = ctoken.value
-                            elif ctoken.ttype is not Whitespace:
-                                value = ctoken.value
-
-                        # tell ts format is timestamp or iso
-                        if value.startswith("'") and value.endswith("'"):
-                            id = 'iso'
-                        else:
-                            id = 'timestamp'
-
-                        value = str(value).replace("'", "").replace("+","%2B")
-
-                        # If time is relative time
-                        if value.upper().startswith('NOW'):
-                            value = self.relativeTimeParser(value, 'iso')
-
-                        if comp == '=':
-                            pointQueryValue.update({id: value})
-                        elif comp == '>':
-                            rangeQueryStart.update({id: value})
-                        elif comp == '<':
-                            rangeQueryEnd.update({id: value})
-
-
-                if pointQueryValue:
-                    return pointQuery
-                if rangeQueryStart:
-                    return rangeQuery
-
-    def doQuery(self, dml):
-        devices = self.getTables(dml)
-        if not devices:
-            print 'Device should be provided ...'
-            return
-        if len(devices) > 1:
-            print 'Multi-devices query is not supported now ...'
-            return
-        sensors = self.getColumns(dml)
-        predicate = self.getWhere(dml)
-        if not predicate:
-            print 'The select statement does NOT contain WHERE predicates, currently is not supported ...'
-            return None
-        query_url = 'data-points'
-        if predicate.has_key('sampleTime'):
-            key = 'sampleTime'
-            value = predicate['sampleTime']
-        elif predicate.has_key('timeRange'):
-            key = 'timeRange'
-            value = predicate['timeRange']
-            query_url = 'data-rows'
-        else:
-            print 'The query is not supported now ...'
-
-        sources = {"device": devices[0], "sensors": sensors}
-        sources[key] = value
-        select = {"sources": sources}
-
-        uri = self.url + '/data/' + query_url + '?select=' + json.dumps(select)
-        response = get(uri)
-        pretty(json.loads(response.text))
+    # def getColumnAndTables(self, sql):
+    #     ids = []
+    #     # print sql.tokens
+    #     for token in sql.tokens:
+    #         if isinstance(token, IdentifierList):
+    #             for identifier in token.get_identifiers():
+    #                 ids.append(identifier.get_name())
+    #         elif isinstance(token, Identifier):
+    #             ids.append(token.value)
+    #         elif token.ttype is Keyword and token.value.upper() == 'FROM':
+    #             ids.append(token.value)
+    #         elif token.ttype is Wildcard:
+    #             ids.append(token.value)
+    #     return ids
+    #
+    # def getColumns(self, sql):
+    #     if not self.isDML(sql):
+    #         return None
+    #     ids = self.getColumnAndTables(sql)
+    #     columns = []
+    #     for id in ids:
+    #         if id.upper() == 'FROM':
+    #             break
+    #         columns.append(id)
+    #     return columns
+    #
+    # def getTables(self, sql):
+    #     if not self.isDML(sql):
+    #         return None
+    #     ids = self.getColumnAndTables(sql)
+    #     columns = self.getColumns(sql)
+    #     tables = copy.deepcopy(ids)
+    #     for id in ids:
+    #         if id.upper() <> 'FROM':
+    #             tables.remove(id)
+    #         else:
+    #             tables.remove(id)
+    #             break
+    #     return tables
+    #
+    # def relativeTimeParser(self, relativeStr, format):
+    #     if format.upper() <> 'ISO' and format.upper() <> 'TIMESTAMP':
+    #         print 'The time format is either not ISO or TIMESTAMP'
+    #         return relativeStr
+    #     if relativeStr.upper() == 'NOW':
+    #         if format.upper() == 'ISO':
+    #             return arrow.now().format('YYYY-MM-DDTHH:mm:ss.SSSZZ').replace("+","%2B")
+    #         elif format.upper() == 'TIMESTAMP':
+    #             return int(round(arrow.now().float_timestamp * 1000))
+    #     else:
+    #         regex = '^(now)(-)([0-9]+)([s,m,h,d,w]{1})$'
+    #         pattern = re.compile(regex)
+    #         if pattern.match(str(relativeStr)):
+    #             segments = pattern.findall(str(relativeStr))
+    #             if segments[0][3] == 's':
+    #                 unit = 'seconds'
+    #             elif segments[0][3] == 'm':
+    #                 unit = 'minutes'
+    #             elif segments[0][3] == 'h':
+    #                 unit = 'hours'
+    #             elif segments[0][3] == 'd':
+    #                 unit = 'days'
+    #             elif segments[0][3] == 'w':
+    #                 unit = 'weeks'
+    #             replaceStr = unit + "=%s%s" % (segments[0][1],segments[0][2])
+    #             param = {unit:int("%s%s" % (segments[0][1],segments[0][2]))}
+    #             print param
+    #             if format.upper() == 'ISO':
+    #                 return arrow.now().replace(**param).format('YYYY-MM-DDTHH:mm:ss.SSSZZ').replace("+","%2B")
+    #             elif format.upper() == 'TIMESTAMP':
+    #                 return int(round(arrow.now().replace(**param).float_timestamp * 1000))
+    #         else:
+    #             print 'The relative time format is wrong ...'
+    #             return relativeStr
+    #
+    # def getWhere(self, sql):
+    #     if not self.isDML(sql):
+    #         return None
+    #     tokens = sql.tokens
+    #     for token in tokens:
+    #         if isinstance(token, Where):
+    #             # print token.value
+    #             pointQueryValue = {}
+    #             pointQuery = {"sampleTime": pointQueryValue}
+    #
+    #             rangeQueryStart = {}
+    #             rangeQueryEnd = {}
+    #             rangeQuery = {"timeRange": {"start": rangeQueryStart, "end": rangeQueryEnd}}
+    #
+    #             whereToekns = token.tokens
+    #
+    #             for token in whereToekns:
+    #                 if isinstance(token, sqlcomp):
+    #                     comparisonTokens = token.tokens
+    #                     for ctoken in comparisonTokens:
+    #                         if isinstance(ctoken, Identifier):
+    #                             id = ctoken.value
+    #                         elif ctoken.ttype is Comparison:
+    #                             comp = ctoken.value
+    #                         elif ctoken.ttype is not Whitespace:
+    #                             value = ctoken.value
+    #
+    #                     # tell ts format is timestamp or iso
+    #                     if value.startswith("'") and value.endswith("'"):
+    #                         id = 'iso'
+    #                     else:
+    #                         id = 'timestamp'
+    #
+    #                     value = str(value).replace("'", "").replace("+","%2B")
+    #
+    #                     # If time is relative time
+    #                     if value.upper().startswith('NOW'):
+    #                         value = self.relativeTimeParser(value, 'iso')
+    #
+    #                     if comp == '=':
+    #                         pointQueryValue.update({id: value})
+    #                     elif comp == '>':
+    #                         rangeQueryStart.update({id: value})
+    #                     elif comp == '<':
+    #                         rangeQueryEnd.update({id: value})
+    #
+    #
+    #             if pointQueryValue:
+    #                 return pointQuery
+    #             if rangeQueryStart:
+    #                 return rangeQuery
+    #
+    # def doQuery(self, dml):
+    #     devices = self.getTables(dml)
+    #     if not devices:
+    #         print 'Device should be provided ...'
+    #         return
+    #     if len(devices) > 1:
+    #         print 'Multi-devices query is not supported now ...'
+    #         return
+    #     sensors = self.getColumns(dml)
+    #     predicate = self.getWhere(dml)
+    #     if not predicate:
+    #         print 'The select statement does NOT contain WHERE predicates, currently is not supported ...'
+    #         return None
+    #     query_url = 'data-points'
+    #     if predicate.has_key('sampleTime'):
+    #         key = 'sampleTime'
+    #         value = predicate['sampleTime']
+    #     elif predicate.has_key('timeRange'):
+    #         key = 'timeRange'
+    #         value = predicate['timeRange']
+    #         query_url = 'data-rows'
+    #     else:
+    #         print 'The query is not supported now ...'
+    #
+    #     sources = {"device": devices[0], "sensors": sensors}
+    #     sources[key] = value
+    #     select = {"sources": sources}
+    #
+    #     uri = self.url + '/data/' + query_url + '?select=' + json.dumps(select)
+    #     response = get(uri)
+    #     pretty(json.loads(response.text))
 
     def transfer(self, statements):
         for statement in statements:
             if self.isDML(statement):
-                self.doQuery(statement)
+                dyn_query(self.url, statement)
             elif self.isDDL(statement):
                 create_meta(self.url,statement)
             elif self.isKeyword(statement):
