@@ -127,7 +127,6 @@ relative time format is:
 ```
 
 ### query metadata
-support query metadata from 2016.08.03
 
 ```
 show device-types|devices [id]
@@ -139,11 +138,10 @@ show devices deviceid     # query devices who's id = deviceid
 ```
 
 ### create metadata
-support create metadata from 2016.08.03
 
 #### create device-type
 ```
-create device-types id(s1 valueType,s2 valueType, ......)
+create device-types id(s1 valueType,s2 valueType, ......) tags(t1,t2,...) attributes(k1 v1,k2 v2,....)
 ```
 id is your deviceTypeId
 s1,s2,....sn are sensorId
