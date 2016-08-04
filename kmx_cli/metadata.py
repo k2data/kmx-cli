@@ -15,7 +15,7 @@ from pretty import pretty_meta, pretty_meta_list
 def query_meta(url,statement):
     tokens = statement.tokens
     if len(tokens) < 3 or tokens[0].value.strip().lower() != 'show' :
-        print Back.YEELOW + 'Please add table name in your sql. Table name show be in [devices ,device-type] ....'
+        print Back.YELLOW + 'Please add table name in your sql. Table name show be in [devices ,device-type] ....'
         return
 
     params = tokens[2].value.strip().split(' ')
