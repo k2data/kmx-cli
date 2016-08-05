@@ -95,6 +95,10 @@ def create_meta(url, statements):
     payload = parse_attr(payload, tokens)
 
     response = post(uri, json.dumps(payload))
-    response_payload = json.loads(response.text)
-    pretty_meta(response_payload, action)
+    status_code = response.status_code
+    if status_code >= 500 :
+        print  Fore.RED + response.text + Fore.RESET
+    else:
+        response_payload = json.loads(response.text)
+        pretty_meta(response_payload, action)
     response.close()

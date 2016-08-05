@@ -168,5 +168,12 @@ def dyn_query(url, dml):
     select = {"sources": sources}
 
     uri = url + '/data/' + query_url + '?select=' + json.dumps(select)
+    print uri
     response = get(uri)
-    pretty_data_query(json.loads(response.text))
+    rc = response.status_code
+    if rc != 200:
+        print 'Code: ' + str(rc)
+        print response.text
+    else:
+        pretty_data_query(json.loads(response.text))
+    response.close()
