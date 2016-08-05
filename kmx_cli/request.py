@@ -4,7 +4,7 @@
 import requests
 from colorama import Fore
 
-headers = {"Content-Type": "application/json"}
+
 
 
 def get(url):
@@ -17,11 +17,12 @@ def get(url):
     return requests.get(url)
 
 
-def post(url, payload):
+def post(url, payload=None, headers={"Content-Type": "application/json"}):
     '''
     :param url:
     :param payload:
+    :param headers:
     :return:
     '''
     print Fore.CYAN + url
-    return requests.post(url, headers=headers, data=payload)
+    return requests.post(url, payload=payload, headers=headers)
