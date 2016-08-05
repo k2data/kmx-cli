@@ -37,7 +37,7 @@ def pretty_data_query(payload, format='psql'):
             result.append((rec['device'], rec.get('timestamp', non_exist), rec.get('sensor', non_exist),rec.get('value', non_exist)))
         if result:
             print tabulate(result, headers, tablefmt=format)
-    print Fore.YELLOW + err_msg
+    print Fore.YELLOW + err_msg + Fore.RESET
 
     if 'pageInfo' in payload:
         pages = payload['pageInfo']
