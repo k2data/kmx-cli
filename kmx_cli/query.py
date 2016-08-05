@@ -4,6 +4,7 @@
 from sqlparse.tokens import Keyword, Whitespace, Wildcard, Comparison
 from sqlparse.sql import IdentifierList, Identifier, Where
 from sqlparse.sql import Comparison as sqlcomp
+from colorama import Fore
 
 import arrow
 import re
@@ -168,7 +169,8 @@ def dyn_query(url, dml):
     select = {"sources": sources}
 
     uri = url + '/data/' + query_url + '?select=' + json.dumps(select)
-    print uri
+    print Fore.BLUE + uri + Fore.RESET
+    print
     response = get(uri)
     rc = response.status_code
     if rc != 200:
