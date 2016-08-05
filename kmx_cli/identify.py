@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import sqlparse
 from sqlparse.tokens import DML, DDL, Keyword
 from sqlparse.sql import Identifier, IdentifierList
 from colorama import Back
@@ -16,20 +17,16 @@ def identify(statement, category):
     token = statement.tokens[0]
     identifier = token.value.encode("utf-8").lower()
     if identifier in identifiers:
-        print '-------------------------------------------'
         if category == 'DML':
-            return statement.tokens[0].ttype is DML
+            return token.ttype is DML
         elif category == 'DDL':
-            return statement.tokens[0].ttype is DDL
+            return token.ttype is DDL
         elif category == 'Keyword':
-            return statement.tokens[0].ttype is Keyword
+            return token.ttype is Keyword
         elif category == 'Identifier':
-            return statement.tokens[0].ttype is Identifier
+            return identifier.split(' ')[0] in identifiers
         elif category == 'IdentifierList':
-            return statement.tokens[0].ttype is IdentifierList
-    elif category == 'IdentifierList':
-        identifier = statement.tokens[0].value.encode("utf-8").lower().split(' ')[0]
-        return identifier in identifiers
+            return identifier.split(' ')[0] in identifiers
     return False
 
 
@@ -51,7 +48,5 @@ def isIdentifier(statement):
 
 def isIdentifierList(statement):
     return identify(statement, 'IdentifierList')
-
-
 
 

@@ -35,6 +35,7 @@ class cli(cmd.Cmd):
                 return 'stop'
             else:
                 print Back.RED + 'The input statement is not supported ...' + Back.RESET
+            print
 
     def onecmd(self, sql):
         parsed = sqlparse.parse(sql)
