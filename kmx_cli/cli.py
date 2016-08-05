@@ -2,16 +2,16 @@
 # -*- coding: utf-8 -*-
 
 import sqlparse
-from sqlparse.tokens import DML, DDL, Keyword
 
 import argparse
 import socket
+import cmd
 
-from colorama import init, Back
+from colorama import Back
 from metadata import query_meta, create_meta
 from query import dyn_query
-
-import cmd
+from identify import isDDL, isDML, isKeyword, isIdentifierList
+import importor
 
 
 class cli(cmd.Cmd):
@@ -20,23 +20,16 @@ class cli(cmd.Cmd):
     ip = socket.gethostbyname(hostname);
     prompt = '[' + hostname + '@' + ip + '] > '
 
-    def isDML(self, statement):
-        return statement.tokens[0].ttype is DML
-
-    def isDDL(self, statement):
-        return statement.tokens[0].ttype is DDL
-
-    def isKeyword(self, statement):
-        return statement.tokens[0].ttype is Keyword
-
     def transfer(self, statements):
         for statement in statements:
-            if self.isDML(statement):
+            if isDML(statement):
                 dyn_query(self.url, statement)
-            elif self.isDDL(statement):
+            elif isDDL(statement):
                 create_meta(self.url,statement)
-            elif self.isKeyword(statement):
+            elif isKeyword(statement):
                 query_meta(self.url,statement)
+            elif isIdentifierList(statement):
+                importor.run(self.url, statement)
             elif str(statement).upper() == 'BYE' or str(statement).upper() == 'EXIT':
                 print 'Exit KMX CLI ...'
                 return 'stop'
