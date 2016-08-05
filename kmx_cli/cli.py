@@ -50,7 +50,7 @@ def run():
     url = args.url
 
     if url:
-        print 'Using URL: ' + Back.GREEN + str(url) + Back.RESET
+        print 'Query URL: ' + Back.GREEN + str(url) + Back.RESET
         client = cli()
         client.url = url
         client.cmdloop()

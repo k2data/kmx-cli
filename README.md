@@ -1,5 +1,6 @@
 # kmx-cli
 A CLI for KMX query.
+
 Currently, KMX query only support HTTP Rest style query, which is a little bit hard to use for developers.
 
 ## KMX Data Point Query
@@ -9,8 +10,8 @@ http://192.168.130.2/cloud/qa3/kmx/v2/data/data-points?
     select=
         {"sources":
             {
-                "device": "device_sync_01_dWavQ",
-                "sensors": ["DOUBLE_dt_sync_02_dWavQ"],
+                "device": "device_name",
+                "sensors": ["sensor_name"],
                 "sampleTime":
                 {
                     "timestamp": "1469672032196"
@@ -26,9 +27,9 @@ is build to provide developers a easy to use tool.
 For above RESTFul query, in kmx-cli, it's like below:
 ```
 select
-    DOUBLE_dt_sync_02_dWavQ
+    device_name
 from
-    device_sync_01_dWavQ
+    sensor_name
 where
     ts=1469672032196
 ```
@@ -40,9 +41,9 @@ http://192.168.130.2/cloud/qa3/kmx/v2/data/data-points?
     select=
         {
             "sources":{
-                "device":"device_sync_01_dWavQ",
+                "device":"device_name",
                 "sensors":[
-                    "DOUBLE_dt_sync_02_dWavQ"
+                    "sensor_name"
                 ],
                 "timeRange":{
                     "start":{
@@ -59,9 +60,9 @@ http://192.168.130.2/cloud/qa3/kmx/v2/data/data-points?
 kmx-cli style is:
 ```
 select
-    DOUBLE_dt_sync_02_dWavQ
+    device_name
 from
-    device_sync_01_dWavQ
+    sensor_name
 where
     ts>'2016-07-28T10:13:52.196+08:00'
 and
@@ -93,14 +94,14 @@ Now you are ready to go.
 $ kmx_cli -u http://192.168.130.2/cloud/qa3/kmx/v2
 URL input is: http://192.168.130.2/cloud/qa3/kmx/v2
 KMX CLI is running ...
-> select DOUBLE_dt_sync_02_dWavQ from device_sync_01_dWavQ where ts=1469672032196
+> select sensor_name from device_name where ts=1469672032196
 http://192.168.130.2/cloud/qa3/kmx/v2/data/data-points?select=%7B%22sources%22:%20%7B%22device%22:%20%22device_sync_01_dWavQ%22,%20%22sensors%22:%20[%22DOUBLE_dt_sync_02_dWavQ%22],%20%22sampleTime%22:%20%7B%22timestamp%22:%20%221469672032196%22%7D%7D%7D
 {
     "code": 0,
     "dataPoints": [
         {
-            "device": "device_sync_01_dWavQ",
-            "sensor": "DOUBLE_dt_sync_02_dWavQ",
+            "device": "device_name",
+            "sensor": "sensor_name",
             "timestamp": 1469672032196,
             "value": 0.0
         }
@@ -118,8 +119,8 @@ Exit KMX CLI ...
 #### Relative time support
 kmx-cli support relative time for human readable.
 ```
-select DOUBLE_dt_sync_02_dWavQ from device_sync_01_dWavQ where ts>'now-1w' and ts<'now'
-select DOUBLE_dt_sync_02_dWavQ from device_sync_01_dWavQ where ts>'now-1h' and ts<'now'
+select sensor_name from device_name where ts>'now-1w' and ts<'now'
+select sensor_name from device_name where ts>'now-1h' and ts<'now'
 ```
 relative time format is:
 ```
@@ -141,19 +142,16 @@ show devices deviceid     # query devices who's id = deviceid
 
 #### create device-type
 ```
-create device-types id(s1 valueType,s2 valueType, ......) tags(t1,t2,...) attributes(k1 v1,k2 v2,....)
+create device-types device_type_id(sensor1 valueType,sensor2 valueType, ......) tags(t1,t2,...) attributes(k1 v1,k2 v2,....)
 ```
-id is your deviceTypeId
-s1,s2,....sn are sensorId
-valueType is sensor's valueType and must be in [ STRING,DOUBLE,FLOAT,INT,LONG,BOOLEAN]
+* valueType is sensor's valueType and must be in [ STRING,DOUBLE,FLOAT,INT,LONG,BOOLEAN]
 
 #### create devices
 ```
-create devices id(deviceTypeId) tags(t1,t2,...) attributes(k1 v1,k2 v2,....)
+create devices device_id(device_type_id) tags(t1,t2,...) attributes(k1 v1,k2 v2,....)
 ```
-id is your deviceId
-deviceTypeId is the deviceType that the device related to.
-tags should be separated by ,
-attributes must be separated by , . attribute's key and value separated by space
+* "tags" should be separated by ',';
+* "attributes" should be separated by ',';
+* attribute's key and value should be separated by space.
 
 
