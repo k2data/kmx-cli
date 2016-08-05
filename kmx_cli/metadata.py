@@ -60,8 +60,8 @@ def parse_attr(payload, tokens):
     return payload
 
 
-def create_meta(url, sql):
-    tokens = sql.tokens
+def create_meta(url, statements):
+    tokens = statements.tokens
     path = tokens[2].value.encode("utf-8").lower().strip()
 
     action = 'device'
@@ -76,7 +76,7 @@ def create_meta(url, sql):
             sensor = {}
             items = column.encode("utf-8").strip().split(' ')
             if len(items) < 2:
-                print Back.RED + 'sensor : ' + items[0] + ' should have valueType...'
+                print Back.RED + 'sensor : ' + items[0] + ' should have valueType...' + Back.RESET
                 return
             sensor['id'] = items[0].strip()
             sensor['valueType'] = items[1].strip().upper()
@@ -95,5 +95,6 @@ def create_meta(url, sql):
     payload = parse_attr(payload, tokens)
 
     response = post(uri, json.dumps(payload))
-    resopnse_payload = json.loads(response.text)
-    pretty_meta(resopnse_payload, action)
+    response_payload = json.loads(response.text)
+    pretty_meta(response_payload, action)
+    response.close()

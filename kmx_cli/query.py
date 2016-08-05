@@ -11,7 +11,7 @@ import copy
 import json
 
 from request import get
-from pretty import pretty
+from pretty import pretty_data_query
 
 
 def get_column_tables(sql):
@@ -169,4 +169,4 @@ def dyn_query(url, dml):
 
     uri = url + '/data/' + query_url + '?select=' + json.dumps(select)
     response = get(uri)
-    pretty(json.loads(response.text))
+    pretty_data_query(json.loads(response.text))

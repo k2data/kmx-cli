@@ -10,7 +10,7 @@ def pretty_page(pages):
     print 'total:%d    size:%d    pageNum:%d    pages:%d    pageSize:%d\n' % (pages['total'],pages['size'],pages['pageNum'],pages['pages'],pages['pageSize'])
 
 
-def pretty(dict, format='psql'):
+def pretty_data_query(payload, format='psql'):
     ''' @param: query_result is a dict
         @param: fmt may be 'plain', 'simple', 'grid', 'fancy_grid',
                 'psql', 'pipe', 'orgtbl', 'rst', 'html' etc
@@ -19,10 +19,10 @@ def pretty(dict, format='psql'):
     result = []
     headers = ['device', 'ts', 'sensorName', 'sensorValue']
     non_exist = '-'  # show when key does not exist
-    err_msg = dict['message']
+    err_msg = payload['message']
 
-    if 'dataRows' in dict.keys():
-        recs = dict['dataRows']
+    if 'dataRows' in payload.keys():
+        recs = payload['dataRows']
         for rec in recs:
             device = rec.get('device', non_exist)
             ts = rec.get('iso', non_exist)
@@ -32,15 +32,15 @@ def pretty(dict, format='psql'):
                     result.append((device, ts, sensor.get('sensor', non_exist), sensor.get('value', non_exist)))
         if result:
             print tabulate(result, headers, tablefmt=format)
-    elif 'dataPoints' in dict.keys():
-        for rec in dict['dataPoints']:
+    elif 'dataPoints' in payload.keys():
+        for rec in payload['dataPoints']:
             result.append((rec['device'], rec.get('timestamp', non_exist), rec.get('sensor', non_exist),rec.get('value', non_exist)))
         if result:
             print tabulate(result, headers, tablefmt=format)
     print Fore.YELLOW + err_msg
 
-    if 'pageInfo' in dict:
-        pages = dict['pageInfo']
+    if 'pageInfo' in payload:
+        pages = payload['pageInfo']
         print 'size:%d    pageNum:%d    pageSize:%d\n' % (pages['size'],pages['pageNum'],pages['pageSize'])
 
 
@@ -54,15 +54,15 @@ def pretty_meta_list(payload, action, format='psql'):
         action = 'deviceTypes'
     lists = payload[action]
 
-    if action == 'deviceTypes' :
+    if action == 'deviceTypes':
         headers = ['id','url']
         for data in lists:
             results.append((data['id'], data['url']))
         print tabulate(results, headers, tablefmt=format)
-    else :
-        headers =  ['id','url','deviceTypeId','deviceTypeUrl']
+    else:
+        headers = ['id','deviceTypeId','url','deviceTypeUrl']
         for data in lists:
-            results.append( (data['id'], data['url'], data['deviceType']['id'], data['deviceType']['url']) )
+            results.append((data['id'], data['deviceType']['id'], data['url'], data['deviceType']['url']))
         print tabulate(results, headers, tablefmt=format)
 
     pages = payload['pageInfo']
@@ -76,7 +76,7 @@ def pretty_meta(payload, path, format='psql'):
     sensors = []
     headers = payload.keys()
 
-    if path in payload.keys() :
+    if path in payload.keys():
         payload = payload[path];
         sensors = payload.pop('sensors')
         headers = payload.keys()
@@ -86,14 +86,14 @@ def pretty_meta(payload, path, format='psql'):
     result.append(tuple(rows))
 
     if sensors:
-        sensorRows = []
+        sensor_rows = []
         keys = sensors[0].keys()
         for sensor in sensors:
             row = []
             for key in keys:
                 row.append(sensor[key])
-            sensorRows.append(tuple(row))
-        print tabulate(sensorRows, keys, tablefmt=format)
+            sensor_rows.append(tuple(row))
+        print tabulate(sensor_rows, keys, tablefmt=format) + '\n'
 
     print tabulate(result, headers, tablefmt=format)
     print
