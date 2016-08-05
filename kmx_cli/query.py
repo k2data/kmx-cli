@@ -30,8 +30,6 @@ def get_column_tables(sql):
 
 
 def get_columns(sql):
-    # if not self.isDML(sql):
-    #     return None
     ids = get_column_tables(sql)
     columns = []
     for id in ids:
@@ -42,8 +40,6 @@ def get_columns(sql):
 
 
 def get_tables(sql):
-    # if not isDML(sql):
-    #     return None
     ids = get_column_tables(sql)
     columns = get_columns(sql)
     tables = copy.deepcopy(ids)
@@ -93,8 +89,6 @@ def relative_time_parser(relativeStr, format):
 
 
 def get_where(sql):
-    # if not isDML(sql):
-    #     return None
     tokens = sql.tokens
     for token in tokens:
         if isinstance(token, Where):

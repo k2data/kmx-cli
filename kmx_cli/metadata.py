@@ -3,13 +3,13 @@
 
 from colorama import Back
 import json
-from request import get,post
+from request import get, post
 from pretty import pretty_meta, pretty_meta_list
 
 
 def query_meta(url,statement):
     tokens = statement.tokens
-    if len(tokens) < 3 or tokens[0].value.strip().lower() != 'show' :
+    if len(tokens) < 3 or tokens[0].value.strip().lower() != 'show':
         print Back.YELLOW + 'Please add table name in your sql. Table name show be in [devices ,device-type] ....'
         return
 
@@ -17,8 +17,8 @@ def query_meta(url,statement):
     path = params[0].lower()
 
     if path != 'devices'.lower() and path != 'device-types':
-        print ' Usage : show table [id] .   '
-        print 'Table show be in [ devices , device-type ] ....'
+        print ' Usage : show table_name [id] .   '
+        print 'Table name show be in [ devices , device-type ] ....'
         return
     id = ''
     if len(params) > 1 :
@@ -35,6 +35,7 @@ def query_meta(url,statement):
         pretty_meta(resopnse_payload, path)
     else:
         pretty_meta_list(resopnse_payload, path)
+
 
 def parse_attr(payload, tokens):
     length = len(tokens) + 1;

@@ -59,7 +59,7 @@ def run():
     url = args.url
 
     if url:
-        print 'URL input is: ' + Back.GREEN + str(url)
+        print 'URL input is: ' + Back.GREEN + str(url) + Back.WHITE
         client = cli()
         client.url = url
         client.execute()
