@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sqlparse
 from sqlparse.tokens import DML, DDL, Keyword
-from sqlparse.sql import Identifier, IdentifierList
 from colorama import Back
 
 identifiers = ['show', 'create', 'select', 'import']
