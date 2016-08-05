@@ -2,13 +2,12 @@
 # -*- coding: utf-8 -*-
 
 import sqlparse
-from sqlparse.tokens import DML, DDL, Keyword
 
 import argparse
 import socket
 import cmd
 
-from colorama import init, Back
+from colorama import Back
 from metadata import query_meta, create_meta
 from query import dyn_query
 from identify import isDDL, isDML, isKeyword, isIdentifierList
