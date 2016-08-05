@@ -88,6 +88,8 @@ def pretty_meta(payload, path, format='psql'):
     if sensors:
         sensor_rows = []
         keys = sensors[0].keys()
+        if 'url' in keys:
+           keys.remove('url')
         for sensor in sensors:
             row = []
             for key in keys:

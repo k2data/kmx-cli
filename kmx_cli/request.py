@@ -13,7 +13,6 @@ def get(url):
     :param key:
     :return:
     '''
-    print Fore.CYAN + url
     return requests.get(url)
 
 
@@ -24,5 +23,4 @@ def post(url, payload=None, headers={"Content-Type": "application/json"}):
     :param headers:
     :return:
     '''
-    print Fore.CYAN + url
-    return requests.post(url, payload=payload, headers=headers)
+    return requests.post(url, data=payload, headers=headers)

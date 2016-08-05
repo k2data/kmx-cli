@@ -32,7 +32,7 @@ def device_payload(id, deviceTypeId):
     payload = {}
     payload['id'] = id
     payload['deviceTypeId'] = deviceTypeId
-    return json.dump(payload)
+    return json.dumps(payload)
 
 
 def device_type_payload(id, sensorIds, types):
@@ -45,7 +45,7 @@ def device_type_payload(id, sensorIds, types):
         sensors.append(sensor)
     payload['id'] = id
     payload['sensors'] = sensors
-    return json.dump(payload)
+    return json.dumps(payload)
 
 
 def regist(url, payload):
@@ -63,7 +63,7 @@ def get_sensor_value(value, vt):
     if vt == 'boolean':
         v = not value or value.lower() == 'n' or value.lower() == 'no' or value.lower() == '0'
         return not v
-    return  value
+    return value
 
 
 def get_payload(device, sampleTime, sensors, types, values):
@@ -318,7 +318,4 @@ def run(url, statement):
         send_time(url, csv, time_format, sensors, types)
 
     csv.close()
-
-
-
 

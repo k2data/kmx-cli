@@ -10,7 +10,7 @@ from pretty import pretty_meta, pretty_meta_list
 def query_meta(url,statement):
     tokens = statement.tokens
     if len(tokens) < 3 or tokens[0].value.strip().lower() != 'show':
-        print Back.YELLOW + 'Please add table name in your sql. Table name show be in [devices ,device-type] ....'
+        print Back.YELLOW + 'Please add table name in your sql. Table name show be in [devices ,device-type] ....' + Back.RESET
         return
 
     params = tokens[2].value.strip().split(' ')
@@ -54,7 +54,7 @@ def parse_attr(payload, tokens):
                     if len(items) >= 2:
                         attribute['attributeValue'] = items[1].strip()
                     else:
-                        print Back.YELLOW + 'attribute:' + items[0] + ' have no value...'
+                        print Back.YELLOW + 'attribute:' + items[0] + ' have no value...' + Back.RESET
                     attributes.append(attribute)
                 payload['attributes'] = attributes
     return payload
