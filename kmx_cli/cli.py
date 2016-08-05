@@ -11,13 +11,14 @@ from colorama import init, Back
 from metadata import query_meta, create_meta
 from query import dyn_query
 
-init(autoreset=True)
+import cmd
 
 
-class cli:
+class cli(cmd.Cmd):
 
-    def __init__(self):
-        print 'KMX CLI is running ...'
+    hostname = socket.gethostname();
+    ip = socket.gethostbyname(hostname);
+    prompt = '[' + hostname + '@' + ip + '] > '
 
     def isDML(self, statement):
         return statement.tokens[0].ttype is DML
@@ -36,20 +37,17 @@ class cli:
                 create_meta(self.url,statement)
             elif self.isKeyword(statement):
                 query_meta(self.url,statement)
-
-    def execute(self):
-        hostname = socket.gethostname();
-        ip = socket.gethostbyname(hostname);
-
-        while True:
-            sql = raw_input('[' + hostname + '@' + ip + '] > ')
-
-            if sql.upper() == 'EXIT' or sql.upper() == 'BYE':
+            elif str(statement).upper() == 'BYE' or str(statement).upper() == 'EXIT':
                 print 'Exit KMX CLI ...'
-                return
+                return 'stop'
+            else:
+                print Back.RED + 'The input statement is not supported ...' + Back.RESET
 
-            parsed = sqlparse.parse(sql)
-            self.transfer(parsed)
+    def onecmd(self, sql):
+        parsed = sqlparse.parse(sql)
+        rc = self.transfer(parsed)
+        if rc == 'stop':
+            return True
 
 
 def run():
@@ -59,10 +57,10 @@ def run():
     url = args.url
 
     if url:
-        print 'URL input is: ' + Back.GREEN + str(url) + Back.WHITE
+        print 'Using URL: ' + Back.GREEN + str(url) + Back.RESET
         client = cli()
         client.url = url
-        client.execute()
+        client.cmdloop()
 
     else:
         print 'You must provide an HTTP REST URL for KMX query ...'
