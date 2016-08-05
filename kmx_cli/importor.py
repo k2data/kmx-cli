@@ -49,7 +49,11 @@ def device_type_payload(id, sensorIds, types):
 
 
 def regist(url, payload):
-    post(url, payload).close()
+    print url
+    print payload
+    response = post(url, payload)
+    print response.text
+    response.close()
 
 
 def get_sensor_value(value, vt):
@@ -69,7 +73,7 @@ def get_sensor_value(value, vt):
 def get_payload(device, sampleTime, sensors, types, values):
     payload = {}
     datas = []
-    for i in range(len(values)):
+    for i in range(len(sensors)):
         data = {}
         data['sensorId'] = sensors[i]
         data['sensorValue'] = get_sensor_value(values[i], types[i])
@@ -90,10 +94,10 @@ def send_data(url, payload, success_writer, fail_writer, line, success, fail):
 
     if code == 202:
         success += 1
-        success_writer.write(line + '\n' + payload + '\n' + response_payload + '\n' + str(code) + ' ' + response.reason + '\n')
+        success_writer.write(line + '\n' + payload + '\n' + response_payload + '\n' + str(code) + ' ' + response.reason + '\n\n')
     else:
-        success += 1
-        fail_writer.write(line + '\n' + payload + '\n' + response_payload + '\n' + str(code) + ' ' + response.reason + '\n')
+        fail += 1
+        fail_writer.write(line + '\n' + url + '\n' + payload + '\n' + response_payload + '\n' + str(code) + ' ' + response.reason + '\n\n')
 
     response.close()
     return success, fail
@@ -120,15 +124,17 @@ def send_iso(url, csv, sensors, types):
         if len(items) < size:
             drop += 1
             drop_writer.write(line)
-        elif len(items) > size:
-            warn += 1
-            warn_writer.write(line)
-        else:
+        elif len(items) >= size:
             sampleTime = {}
             sampleTime['iso'] = items[1]
 
             payload = get_payload(items[0], sampleTime, sensors, types, items[2:])
             success, fail = send_data(url, payload, success_writer, fail_writer, line, success, fail)
+
+            if len(items) > size:
+                warn += 1
+                warn_writer.write(line + '\n')
+
         line = csv.readline().strip()
 
     success_writer.close()
@@ -247,25 +253,31 @@ def file_checker(csv):
 
 
 def run(url, statement):
+    items = str(statement).split(' ')
     tokens = statement.tokens
 
-    if len(tokens) <= 4:
+    if len(tokens) < 7:
         print Back.RED + 'import Syntax error ...' + Back.RESET
-        print 'Usage : import ${csvfile} into ${deviceType}'
+        print "Usage : import '${csvfile}' into ${deviceType}"
         return
 
-    path = tokens[0].value.split(' ')[1];
+    if len(items) < 2 or not items[1].startswith('\''):
+        print Back.YELLOW + "file path show be quoted in ''" + Back.RESET
+        print "Usage : import '${csvfile}' into ${deviceType}"
+        return
+
+    path = tokens[2].value[1:-1];
     if not os.path.isfile(path):
         print Back.RED + 'file: ' + path + ' not found' + Back.RESET
         return
 
-    into = tokens[2].value.encode("utf-8").strip()
+    into = tokens[4].value.encode("utf-8").strip()
     if into.lower() != 'into':
-        print Back.RED + 'import Syntax error : ' + into + Back.RESET
-        print 'Usage : import ${csvfile} into ${deviceType}'
+        print Back.RED + 'import Syntax error : <' + into + '>' + into + Back.RESET
+        print "Usage : import '${csvfile}' into ${deviceType}"
         return
 
-    device_type = tokens[3].value.encode("utf-8").strip()
+    device_type = tokens[6].value.encode("utf-8").strip()
     device = ''
     sensors = []
     types = []
@@ -282,7 +294,6 @@ def run(url, statement):
             csv.close()
             print Back.YELLOW + 'empty errors, skip import ...' + Back.RESET
             return
-        device = items[0]
         time = items[1]
         sensors = items[2:]
     else:
@@ -298,24 +309,25 @@ def run(url, statement):
             csv.close()
             print Back.YELLOW + 'empty errors, skip import ...' + Back.RESET
             return
+        device = items[0]
         time_format = items[1]
         types = items[2:]
 
     #  检查device-type 和 devices是否注册，没有则自动注册
     if not is_registed(url + '/device-types/' + device_type):
         regist(url + '/device-types',device_type_payload(device_type, sensors, types))
-        wait_published(url + '/device-types/' + device_type)
+        wait_published(url + '/device-types/' + device_type,key='deviceType')
 
     if not is_registed(url + '/devices/' + device):
         regist(url + '/devices',device_payload(device, device_type))
         wait_published(url + '/devices/' + device)
 
+    post_data_url = url + '/channels/devices/data'
     if time.lower() == 'iso':
-        send_iso(url, csv, sensors, types)
+        send_iso(post_data_url, csv, sensors, types)
     elif time.lower() == 'ts' or time == 'timestamp':
-        send_timestamp(url, csv, sensors, types)
+        send_timestamp(post_data_url, csv, sensors, types)
     else:
-        send_time(url, csv, time_format, sensors, types)
+        send_time(post_data_url, csv, time_format, sensors, types)
 
     csv.close()
-

@@ -172,6 +172,8 @@ def dyn_query(url, dml):
     response = get(uri)
     rc = response.status_code
     if rc != 200:
+        print 'Code: ' + str(rc)
         print response.text
     else:
         pretty_data_query(json.loads(response.text))
+    response.close()
