@@ -304,7 +304,7 @@ def run(url, statement):
         print Back.YELLOW + 'empty file: ' + path + '. skip import ...' + Back.RESET
         return
 
-    # 解析第二行,拿到时间格式和sensor信息
+    # 解析第二行,拿到device,时间格式和sensor信息
     line = csv.readline().strip()
     if line:
         items = line.split(',')
