@@ -179,3 +179,16 @@ d1,2016-01-01T12:34:57.789+08:00,34.57789,true,3457789,1451622897789,34.57789,s3
 if  the data items of a data line is less than description line,it will be dropped.
 if  the data items of a data line is more than description line,it will be imported but redundant data will be discard.
 In short,please make sure the data match it's description
+
+
+
+### Batch execution
+```
+source '${script1_path}','${script2_path}'...
+```
+script file content example:
+```
+show devices;
+show device-types;
+select DOUBLE_dt_sync_02_dWavQ from device_sync_01_dWavQ where ts=1469672032196;
+```
