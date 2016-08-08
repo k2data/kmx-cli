@@ -38,7 +38,7 @@ class cli(cmd.Cmd):
             print
 
     def onecmd(self, sql):
-        statements = sqlparse.parse(sql.strip())
+        statements = sqlparse.parse(sql.strip(),'utf-8')
         rc = self.transfer(statements)
         if rc == 'stop':
             return True

@@ -7,6 +7,9 @@ from request import get, post
 from pretty import pretty_meta, pretty_meta_list
 
 
+charset = 'utf-8'
+
+
 def query_meta(url,statement):
     tokens = statement.tokens
     if len(tokens) < 3 or tokens[0].value.strip().lower() != 'show':
@@ -41,15 +44,15 @@ def parse_attr(payload, tokens):
     length = len(tokens) + 1;
     if length > 4:
         for index in range(4, length, 2):
-            key = tokens[index][0].value.encode("utf-8").strip()
+            key = tokens[index][0].value.strip()
             if key == 'tags':
-                payload['tags'] = tokens[index][1].value.encode("utf-8").strip()[1:-1].split(',')
+                payload['tags'] = tokens[index][1].value.strip()[1:-1].split(',')
             elif key == 'attributes':
                 attributes = []
                 attrs = tokens[index][1].value[1:-1].split(',')
                 for att in attrs:
                     attribute = {}
-                    items = att.encode("utf-8").strip().split(' ')
+                    items = att.strip().split(' ')
                     attribute['name'] = items[0].strip()
                     if len(items) >= 2:
                         attribute['attributeValue'] = items[1].strip()
@@ -62,7 +65,7 @@ def parse_attr(payload, tokens):
 
 def create_meta(url, statements):
     tokens = statements.tokens
-    path = tokens[2].value.encode("utf-8").lower().strip()
+    path = tokens[2].value.lower().strip()
 
     action = 'device'
     uri = url + '/' + path
@@ -74,7 +77,7 @@ def create_meta(url, statements):
         columns = tokens[4][1].value[1:-1].split(',')
         for column in columns:
             sensor = {}
-            items = column.encode("utf-8").strip().split(' ')
+            items = column.strip().split(' ')
             if len(items) < 2:
                 print Back.RED + 'sensor : ' + items[0] + ' should have valueType...' + Back.RESET
                 return
@@ -82,11 +85,11 @@ def create_meta(url, statements):
             sensor['valueType'] = items[1].strip().upper()
             sensors.append(sensor)
 
-            payload['id'] = tokens[4][0].value.encode("utf-8").strip()
+            payload['id'] = tokens[4][0].value.strip()
             payload['sensors'] = sensors
 
     elif path == 'devices':
-        payload['id'] = tokens[4][0].value.encode("utf-8").strip()
+        payload['id'] = tokens[4][0].value.strip()
         payload['deviceTypeId'] = tokens[4][1].value[1:-1].strip()
 
     else:

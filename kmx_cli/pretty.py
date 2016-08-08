@@ -82,7 +82,7 @@ def pretty_meta(payload, path, format='psql'):
         headers = payload.keys()
 
     for header in headers:
-        rows.append(json.dumps(payload[header]))
+        rows.append(json.dumps(payload[header], ensure_ascii=False))
     result.append(tuple(rows))
 
     if sensors:
