@@ -1,17 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sqlparse
-
 import argparse
-import socket
 import cmd
+import socket
 
+import sqlparse
 from colorama import Back
+
+import importor
+from batch import get_batchparameters
+from identify import isDDL, isDML, isKeyword, isIdentifier, isIdentifierList
 from metadata import query_meta, create_meta
 from query import dyn_query
-from identify import isDDL, isDML, isKeyword, isIdentifier, isIdentifierList
-import importor
 
 
 class cli(cmd.Cmd):
@@ -38,10 +39,15 @@ class cli(cmd.Cmd):
             print
 
     def onecmd(self, sql):
-        statements = sqlparse.parse(sql.strip(),'utf-8')
-        rc = self.transfer(statements)
-        if rc == 'stop':
-            return True
+        if (str(sql).startswith("source")):
+            for line in open(get_batchparameters(sql)):
+                parsed = sqlparse.parse(line[:-1])
+                self.transfer(parsed)
+        else:
+            parsed = sqlparse.parse(sql)
+            rc = self.transfer(parsed)
+            if rc == 'stop':
+                return True
 
 
 def run():
