@@ -41,7 +41,7 @@ class cli(cmd.Cmd):
             print
 
     def onecmd(self, sql):
-        if (str(sql).startswith("source")):
+        if (str(sql).lstrip().strip().startswith("source")):
             script_path=get_batchparameters(sql)
             if(script_path).endswith(','):
                 script_path=script_path[:-1]
