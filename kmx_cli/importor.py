@@ -14,14 +14,25 @@ default_time_format = 'YYYY-MM-DD HH:mm:ss'
 def is_regist(url):
     response = get(url)
     status_code = response.status_code
-    log.info(' get: ' + url + '  ' + str(status_code) + response.reason)
+    log.info(' get: ' + url + '  ' + str(status_code) + ' ' + response.reason)
     return status_code == 200
+
+
+def regist(url, payload):
+    log.default('POST:\t' + url + '\n' + payload)
+    response = post(url, payload)
+    status_code = response.status_code
+
+    log.default(response.reason + ' ' + str(response.status_code))
+    # log.default(response.text)
+    response.close()
+    return status_code == 201
 
 
 def wait_published(url, key='device'):
     response = get(url)
     status_code = response.status_code
-    status = 'PREPUBLISH'
+    status = ''
     if status_code == 200:
         counter = 0
         response_payload = json.loads(response.text)
@@ -30,12 +41,14 @@ def wait_published(url, key='device'):
 
         while status != 'PUBLISHED' and counter < 30:
             time.sleep(2)
+            counter += 1
             response = get(url)
             response_payload = json.loads(response.text)
             status = response_payload[key]['status']
             response.close()
-            log.info(' get ' + str(counter) + ' times : ' + url + '  ' + str(status_code) + response.reason + '\t' + status)
-    log.info(' get: ' + url + '  ' + str(status_code) + response.reason + '\t' + status)
+            log.default(' get ' + str(counter) + ' times : ' + url + '  ' + str(status_code) + ' ' + response.reason + '\t' + status)
+    log.info(' get: ' + url + '  ' + str(status_code) + ' ' + response.reason + '\t' + status)
+    return status == 'PUBLISHED'
 
 
 def device_payload(device, device_type_id):
@@ -48,14 +61,6 @@ def device_type_payload(id, sensor_ids, types):
         sensor = dict(id=sensor_ids[i], valueType=types[i].upper())
         sensors.append(sensor)
     return json.dumps(dict(id=id, sensors=sensors))
-
-
-def regist(url, payload):
-    log.info('POST:\t' + url + '\n' + payload)
-    response = post(url, payload)
-    log.info(response.reason + ' ' + str(response.status_code))
-    log.info(response.text)
-    response.close()
 
 
 def get_sensor_value(value, vt):
@@ -272,23 +277,26 @@ def run(url, statement):
 
     #  检查device-type 和 devices是否注册，没有则自动注册
     if not is_regist(url + '/device-types/' + device_type):
-        log.primary('deviceType：' + device_type + " doesn't be registered, will regist automatically")
+        log.primary(' deviceType：' + device_type + " doesn't be registered, will regist automatically")
         regist(url + '/device-types',device_type_payload(device_type, sensors, types))
-        wait_published(url + '/device-types/' + device_type,key='deviceType')
+    success = wait_published(url + '/device-types/' + device_type,key='deviceType')
 
-    if not is_regist(url + '/devices/' + device):
-        log.primary('device：' + device + " doesn't be registered, will regist automatically")
+    if success and not is_regist(url + '/devices/' + device):
+        log.primary(' device：' + device + " doesn't be registered, will regist automatically")
         regist(url + '/devices',device_payload(device, device_type))
-        wait_published(url + '/devices/' + device)
+    success = wait_published(url + '/devices/' + device)
 
-    log.default('.....................start import ')
-    post_data_url = url + '/channels/devices/data'
-    if time_str.lower() == 'iso':
-        send_iso(post_data_url, csv, sensors, types)
-    elif time_str.lower() == 'ts' or time == 'timestamp':
-        send_timestamp(post_data_url, csv, sensors, types)
+    if success:
+        log.default('.....................start import ')
+        post_data_url = url + '/channels/devices/data'
+        if time_str.lower() == 'iso':
+            send_iso(post_data_url, csv, sensors, types)
+        elif time_str.lower() == 'ts' or time == 'timestamp':
+            send_timestamp(post_data_url, csv, sensors, types)
+        else:
+            send_time(post_data_url, csv, time_format, sensors, types)
+
+        csv.close()
+        log.default('.....................finished import')
     else:
-        send_time(post_data_url, csv, time_format, sensors, types)
-
-    csv.close()
-    log.default('.....................finished import')
+        log.error(' deviceType:' + device_type + ' or device:' + device + ' can not be synchronized into system. Please check if KMX is running in normal state')
