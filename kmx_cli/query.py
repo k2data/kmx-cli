@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-from sqlparse.tokens import Keyword, Whitespace, Wildcard, Comparison
-from sqlparse.sql import IdentifierList, Identifier, Where
+import sqlparse
+from sqlparse.keywords import KEYWORDS
+from sqlparse import tokens
+from sqlparse.tokens import Keyword, Whitespace, Wildcard, Comparison, Literal, Number
+from sqlparse.sql import IdentifierList, Identifier, Where, TokenList
 from sqlparse.sql import Comparison as sqlcomp
 from colorama import Fore
 
@@ -13,6 +15,12 @@ import json
 
 from request import get
 from pretty import pretty_data_query
+
+close_list = list(Where.M_CLOSE[1])
+close_list.append('PAGE')
+close_list.append('SIZE')
+Where.M_CLOSE = (Where.M_CLOSE[0], tuple(close_list))
+KEYWORDS['PAGE'] = tokens.Keyword
 
 
 def get_column_tables(sql):
@@ -168,7 +176,18 @@ def dyn_query(url, dml):
     sources[key] = value
     select = {"sources": sources}
 
-    uri = url + '/data/' + query_url + '?select=' + json.dumps(select)
+    # page and size
+    page,size = get_page_size(dml)
+    page_size = ''
+    if page:
+        page_size += '&page=' + str(page)
+    if size:
+        page_size += '&size=' + str(size)
+
+    if page_size:
+        uri = url + '/data/' + query_url + '?select=' + json.dumps(select) + page_size
+    else:
+        uri = url + '/data/' + query_url + '?select=' + json.dumps(select)
     print Fore.BLUE + uri + Fore.RESET
     print
     response = get(uri)
@@ -179,3 +198,26 @@ def dyn_query(url, dml):
     else:
         pretty_data_query(json.loads(response.text))
     response.close()
+
+
+def get_page_size(sql):
+    page = None
+    size = None
+    tokens = TokenList(sql.tokens)
+    if isinstance(tokens, TokenList):
+        page_token = tokens.token_matching([lambda t: t.value.upper() == 'PAGE'],0)
+        if page_token:
+            page_idx = tokens.token_index(page_token, 0)
+            while tokens[page_idx].ttype is not Literal.Number.Integer:
+                page_idx += 1
+            page = tokens[page_idx].value
+            print page
+
+        size_token = tokens.token_matching([lambda t: t.value.upper() == 'SIZE'],0)
+        if size_token:
+            size_idx = tokens.token_index(size_token, 0)
+            while tokens[size_idx].ttype is not Literal.Number.Integer:
+                size_idx += 1
+            size = tokens[size_idx].value
+            print size
+    return page,size
