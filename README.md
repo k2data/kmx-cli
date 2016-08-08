@@ -127,6 +127,15 @@ relative time format is:
 ^(now)(-)([0-9]+)([s,m,h,d,w]{1})$
 ```
 
+#### Page and Size keyword support
+```
+select sensor_name
+    from device_name
+    where ts > '2015-04-24T20:10:00.000+08:00' and ts < '2015-05-01T07:59:59.000+08:00'
+    page 3 size 40
+```
+*Note, Page and Size is not required, if Page or Size is not set, default value will be used.*
+
 ### query metadata
 
 ```
