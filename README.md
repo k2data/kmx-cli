@@ -184,7 +184,7 @@ In short,please make sure the data match it's description
 
 ### Batch execution
 ```
-source '${script_path}'
+source '${script1_path}','${script2_path}'...
 ```
 script file content example:
 ```
