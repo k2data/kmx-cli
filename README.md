@@ -153,5 +153,30 @@ create devices device_id(device_type_id) tags(t1,t2,...) attributes(k1 v1,k2 v2,
 * "tags" should be separated by ',';
 * "attributes" should be separated by ',';
 * attribute's key and value should be separated by space.
+* attribute's key and value does not suppurt space inside it
 
 
+### import csv data
+```
+import '${csvfile}' into ${deviceType}
+```
+
+##### csv file format :
+csv file content example:
+```
+device,iso,sensor1,sensor2,sensor3,sensor4,sensor5,sensor6
+d1,iso,DOUBLE,BOOLEAN,INT,LONG,FLOAT,STRING
+d1,2016-01-01T12:34:56.789+08:00,34.56789,false,3456789,1451622896789,34.56789,s34.56789
+d1,2016-01-01T12:34:57.789+08:00,34.57789,true,3457789,1451622897789,34.57789,s34.57789
+```
+1. the first and second are description of csv data file and it must be writed correctly
+2. the first line should be like 'device,${time},sensor1,sensor2......'
+3. the second line should be like '${deviceId},${time_format},valueType1,,valueType2......'
+4. if ${time} is 'iso' or 'timestamp', ${time_format} in second line will be igored. Otherwise ${time_format} in second should match real format of the time from the third line
+5. from the third line,it  be identified as a data line.you should fill in your data that match it description
+* file path show be quoted in ''
+
+
+if  the data items of a data line is less than description line,it will be dropped.
+if  the data items of a data line is more than description line,it will be imported but redundant data will be discard.
+In short,please make sure the data match it's description
