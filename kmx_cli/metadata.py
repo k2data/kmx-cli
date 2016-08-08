@@ -19,7 +19,7 @@ def query_meta(url,statement):
     params = tokens[2].value.strip().split(' ')
     path = params[0].lower()
 
-    if path != 'devices'.lower() and path != 'device-types':
+    if path != 'devices' and path != 'device-types':
         print ' Usage : show table_name [id] .   '
         print 'Table name show be in [ devices , device-type ] ....'
         return
