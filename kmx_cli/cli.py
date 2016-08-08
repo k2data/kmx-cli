@@ -43,12 +43,18 @@ class cli(cmd.Cmd):
     def onecmd(self, sql):
         if (str(sql).startswith("source")):
             script_path=get_batchparameters(sql)
-            if os.path.exists(script_path):
-               for line in open():
-                   parsed = sqlparse.parse(line[:-1])
-                   self.transfer(parsed)
-            else:
-                log.error('The file ' +script_path+' not existing,please check...')
+            if(script_path).endswith(','):
+                script_path=script_path[:-1]
+            paths=script_path.split(',')
+            for path in paths:
+                if os.path.exists(path.lstrip().rstrip()):
+                    for line in open(path.lstrip().rstrip()):
+                        parsed = sqlparse.parse(line[:-1])
+                        log.info(line[:-1])
+                        self.transfer(parsed)
+                else:
+                    log.error('The file ' +path.lstrip().rstrip()+' not existing,please check...')
+
         else:
             parsed = sqlparse.parse(sql)
             rc = self.transfer(parsed)
