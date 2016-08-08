@@ -3,12 +3,14 @@
 
 import argparse
 import cmd
+import os
 import socket
 
 import sqlparse
 from colorama import Back
 
 import importor
+import log
 from batch import get_batchparameters
 from identify import isDDL, isDML, isKeyword, isIdentifier, isIdentifierList
 from metadata import query_meta, create_meta
@@ -40,9 +42,13 @@ class cli(cmd.Cmd):
 
     def onecmd(self, sql):
         if (str(sql).startswith("source")):
-            for line in open(get_batchparameters(sql)):
-                parsed = sqlparse.parse(line[:-1])
-                self.transfer(parsed)
+            script_path=get_batchparameters(sql)
+            if os.path.exists(script_path):
+               for line in open():
+                   parsed = sqlparse.parse(line[:-1])
+                   self.transfer(parsed)
+            else:
+                log.error('The file ' +script_path+' not existing,please check...')
         else:
             parsed = sqlparse.parse(sql)
             rc = self.transfer(parsed)
