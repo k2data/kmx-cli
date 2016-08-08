@@ -10,7 +10,7 @@ import cmd
 from colorama import Back
 from metadata import query_meta, create_meta
 from query import dyn_query
-from identify import isDDL, isDML, isKeyword, isIdentifierList
+from identify import isDDL, isDML, isKeyword, isIdentifier, isIdentifierList
 import importor
 
 
@@ -22,19 +22,19 @@ class cli(cmd.Cmd):
 
     def transfer(self, statements):
         for statement in statements:
-            if isDML(statement):
+            if str(statement).upper() == 'BYE' or str(statement).upper() == 'EXIT':
+                print 'Exit KMX CLI ...'
+                return 'stop'
+            elif isDML(statement):
                 dyn_query(self.url, statement)
             elif isDDL(statement):
                 create_meta(self.url,statement)
             elif isKeyword(statement):
                 query_meta(self.url,statement)
-            elif isIdentifierList(statement):
+            elif isIdentifier(statement) or isIdentifierList:
                 importor.run(self.url, statement)
-            elif str(statement).upper() == 'BYE' or str(statement).upper() == 'EXIT':
-                print 'Exit KMX CLI ...'
-                return 'stop'
             else:
-                print Back.RED + 'The input statement is not supported ...' + Back.RESET
+                print Back.RED + 'The input statement "' + str(statement) + '" is not supported ...' + Back.RESET
             print
 
     def onecmd(self, sql):

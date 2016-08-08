@@ -28,10 +28,11 @@ sqls = [
 
     "select DOUBLE_dt_sync_02_dWavQ from device_sync_01_dWavQ where ts>'now-100w' and ts<'now'",
     "import testdata/test.csv into test_import",
+    "import test.csv into test_import",
     "import 'testdata/test.csv' into test_import",
     "import '/home/workspace/git/k2data/kmx-cli2/testdata/test.csv' into test_import"
 ]
 
 for sql in sqls:
-    parsed = sqlparse.parse(sql)
-    client.transfer(parsed)
+    statements = sqlparse.parse(sql)
+    client.transfer(statements)

@@ -259,11 +259,13 @@ def run(url, statement):
     if len(tokens) < 7:
         print Back.RED + 'import Syntax error ...' + Back.RESET
         print "Usage : import '${csvfile}' into ${deviceType}"
+        print Back.YELLOW + "file path show be quoted in ''" + Back.RESET
         return
 
     if len(items) < 2 or not items[1].startswith('\''):
         print Back.YELLOW + "file path show be quoted in ''" + Back.RESET
         print "Usage : import '${csvfile}' into ${deviceType}"
+        print Back.YELLOW + "file path show be quoted in ''" + Back.RESET
         return
 
     path = tokens[2].value[1:-1];
@@ -275,6 +277,7 @@ def run(url, statement):
     if into.lower() != 'into':
         print Back.RED + 'import Syntax error : <' + into + '>' + into + Back.RESET
         print "Usage : import '${csvfile}' into ${deviceType}"
+        print Back.YELLOW + "file path show be quoted in ''" + Back.RESET
         return
 
     device_type = tokens[6].value.encode("utf-8").strip()
