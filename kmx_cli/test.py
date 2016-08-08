@@ -7,6 +7,7 @@ from cli import cli
 
 client = cli()
 client.url = 'http://192.168.130.2/cloud/qa3/kmx/v2'
+client.url = 'http://localhost/cloud/local/kmx/v2'
 
 num = str(random.randint(10000, 99999))
 
@@ -34,7 +35,7 @@ sqls = [
     "import testdata/test.csv into test_import",
     "import test.csv into test_import",
     "import 'testdata/test.csv' into test_import",
-    "import '/home/workspace/git/k2data/kmx-cli2/testdata/test.csv' into test_import"
+    "import '../build/data.csv' into test_import"
 ]
 
 for sql in sqls:
