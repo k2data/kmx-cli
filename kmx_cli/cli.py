@@ -41,7 +41,11 @@ class cli(cmd.Cmd):
             print
 
     def onecmd(self, sql):
-        if (str(sql).lstrip().strip().startswith("source")):
+        if (str(sql).lstrip().strip().upper()==("SOURCE")):
+            log.error('Please enter at least one script path after the keyword "SOURCE"')
+            log.info('Usage: SOURCE Script1,Script2...')
+            return
+        if (str(sql).lstrip().strip().upper().startswith("SOURCE")):
             script_path=get_batchparameters(sql)
             if(script_path).endswith(','):
                 script_path=script_path[:-1]
