@@ -160,8 +160,6 @@ create devices device_id(device_type_id) tags(t1,t2,...) attributes(k1 v1,k2 v2,
 ```
 import '${csvfile}' into ${deviceType}
 ```
-
-##### csv file format :
 csv file content example:
 ```
 device,iso,sensor1,sensor2,sensor3,sensor4,sensor5,sensor6
@@ -169,6 +167,7 @@ d1,iso,DOUBLE,BOOLEAN,INT,LONG,FLOAT,STRING
 d1,2016-01-01T12:34:56.789+08:00,34.56789,false,3456789,1451622896789,34.56789,s34.56789
 d1,2016-01-01T12:34:57.789+08:00,34.57789,true,3457789,1451622897789,34.57789,s34.57789
 ```
+##### csv file format :
 1. the first and second are description of csv data file and it must be writed correctly
 2. the first line should be like 'device,${time},sensor1,sensor2......'
 3. the second line should be like '${deviceId},${time_format},valueType1,,valueType2......'
