@@ -10,12 +10,10 @@ def default(message):
 
 def info(message):
     print Fore.CYAN + message + Fore.RESET
-    pass
 
 
 def primary(message):
     print Fore.BLUE + message + Fore.RESET
-    pass
 
 
 def success(message):

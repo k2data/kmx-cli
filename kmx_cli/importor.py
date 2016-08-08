@@ -29,23 +29,15 @@ def wait_published(url, key='device'):
 
 
 def device_payload(id, deviceTypeId):
-    payload = {}
-    payload['id'] = id
-    payload['deviceTypeId'] = deviceTypeId
-    return json.dumps(payload)
+    return json.dumps(dict(id=id, deviceTypeId=deviceTypeId))
 
 
-def device_type_payload(id, sensorIds, types):
-    payload = {}
+def device_type_payload(id, sensor_ids, types):
     sensors = []
-    for i in range(len(sensorIds)):
-        sensor = {}
-        sensor['id'] = sensorIds[i]
-        sensor['valueType'] = types[i].upper()
+    for i in range(len(sensor_ids)):
+        sensor = dict(id=sensor_ids[i], valueType=types[i].upper())
         sensors.append(sensor)
-    payload['id'] = id
-    payload['sensors'] = sensors
-    return json.dumps(payload)
+    return json.dumps(dict(id=id,sensors=sensors))
 
 
 def regist(url, payload):
@@ -218,54 +210,58 @@ def send_time(url, csv, time_format, sensors, types):
 
 
 def file_checker(csv):
-    size = 0  # 列数
-    sensors = []; types = []
+    # size = 0  # 列数
+    # sensors = []; types = []
+    #
+    # time = ''; time_format = ''
+    #
+    # line = csv.readline()
+    #
+    # # 解析第一行,拿到时间标示和sensor信息
+    # if line:
+    #     items = line.split(',')
+    #     if len(items) < 3:
+    #         csv.close()
+    #         print Back.YELLOW + 'empty errors, skip import ...' + Back.RESET
+    #         return
+    #     size = len(items)
+    #     time = items[1]
+    #     sensors = items[2:]
+    # else:
+    #     csv.close()
+    #     print Back.YELLOW + 'empty file: ' + path + '. skip import ...' + Back.RESET
+    #     return
+    #
+    # # 解析第一行,拿到时间格式和sensor信息
+    # line = csv.readline()
+    # if line:
+    #     items = line.split(',')
+    #     if len(items) < 3:
+    #         csv.close()
+    #         print Back.YELLOW + 'empty errors, skip import ...' + Back.RESET
+    #         return
+    #     time_format = items[1]
+    #     types = items[2:]
+    return
 
-    time = ''; time_format = ''
 
-    line = csv.readline()
-
-    # 解析第一行,拿到时间标示和sensor信息
-    if line:
-        items = line.split(',')
-        if len(items) < 3:
-            csv.close()
-            print Back.YELLOW + 'empty errors, skip import ...' + Back.RESET
-            return
-        size = len(items)
-        time = items[1]
-        sensors = items[2:]
-    else:
-        csv.close()
-        print Back.YELLOW + 'empty file: ' + path + '. skip import ...' + Back.RESET
-        return
-
-    # 解析第一行,拿到时间格式和sensor信息
-    line = csv.readline()
-    if line:
-        items = line.split(',')
-        if len(items) < 3:
-            csv.close()
-            print Back.YELLOW + 'empty errors, skip import ...' + Back.RESET
-            return
-        time_format = items[1]
-        types = items[2:]
+def usage():
+    print "Usage : import '${csvfile}' into ${deviceType}"
+    print "file path show be quoted in ' '"
 
 
-def run(url, statement):
+def parse_sql(statement):
     items = str(statement).split(' ')
     tokens = statement.tokens
 
     if len(tokens) < 7:
         print Back.RED + 'import Syntax error ...' + Back.RESET
-        print "Usage : import '${csvfile}' into ${deviceType}"
-        print Back.YELLOW + "file path show be quoted in ''" + Back.RESET
+        usage()
         return
 
     if len(items) < 2 or not items[1].startswith('\''):
         print Back.YELLOW + "file path show be quoted in ''" + Back.RESET
-        print "Usage : import '${csvfile}' into ${deviceType}"
-        print Back.YELLOW + "file path show be quoted in ''" + Back.RESET
+        usage()
         return
 
     path = tokens[2].value[1:-1];
@@ -276,16 +272,17 @@ def run(url, statement):
     into = tokens[4].value.encode("utf-8").strip()
     if into.lower() != 'into':
         print Back.RED + 'import Syntax error : <' + into + '>' + into + Back.RESET
-        print "Usage : import '${csvfile}' into ${deviceType}"
-        print Back.YELLOW + "file path show be quoted in ''" + Back.RESET
+        usage()
+        return
+    return path, tokens[6].value.encode("utf-8").strip()
+
+
+def run(url, statement):
+    items = parse_sql(statement)
+    if len(items) < 2:
         return
 
-    device_type = tokens[6].value.encode("utf-8").strip()
-    device = ''
-    sensors = []
-    types = []
-
-    time = ''; time_format = ''
+    path, device_type = items()
 
     csv = open(path, 'r')
 
@@ -318,6 +315,7 @@ def run(url, statement):
 
     #  检查device-type 和 devices是否注册，没有则自动注册
     if not is_registed(url + '/device-types/' + device_type):
+
         regist(url + '/device-types',device_type_payload(device_type, sensors, types))
         wait_published(url + '/device-types/' + device_type,key='deviceType')
 
