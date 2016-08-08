@@ -23,7 +23,7 @@ def success(message):
 
 
 def warn(message):
-    print Back.YELLOW + message + Fore.RESET
+    print Fore.YELLOW + message + Fore.RESET
 
 
 def error(message):
@@ -32,8 +32,8 @@ def error(message):
 
 if __name__ == '__main__':
     default("default message")
-    primary("primary message")
     info("info message")
+    primary("primary message")
     success("success message")
     warn("warn message")
     error("error message")
