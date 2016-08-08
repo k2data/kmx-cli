@@ -18,7 +18,7 @@ def unrecognized(statement):
 
 def identify(statement, category):
     token = statement.tokens[0]
-    identifier = token.value.encode("utf-8").lower()
+    identifier = token.value.lower()
 
     if category == 'DML':
         return token.ttype is DML and identifier in default_identifiers
