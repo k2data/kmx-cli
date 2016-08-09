@@ -5,9 +5,6 @@ import random
 import sqlparse
 import cli
 
-url = 'http://192.168.130.2/cloud/qa3/kmx/v2'
-url = 'http://localhost/cloud/local/kmx/v2'
-
 num = str(random.randint(10000, 99999))
 
 sqls = [
@@ -40,4 +37,4 @@ sqls = [
 for sql in sqls:
     statements = sqlparse.parse(sql, 'utf-8')
     for statement in statements:
-        cli.transfer(url, statements)
+        cli.transfer('http://192.168.130.2/cloud/qa3/kmx/v2', statements)

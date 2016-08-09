@@ -55,9 +55,6 @@ def isIdentifierList(statement):
     return identify(statement, 'IdentifierList')
 
 
-
-
-
 def find_next_token_by_ttype(sql, lambda_func, target_ttype):
     '''
     import sqlparse

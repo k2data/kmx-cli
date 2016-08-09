@@ -4,7 +4,6 @@
 import json
 from sqlparse.sql import Function, Parenthesis
 from request import post
-import identify
 import log
 from pretty import pretty_meta
 
@@ -111,10 +110,3 @@ def create(url, state_ment):
         log.warn(str(status_code) + ' ' + response.reason + '\n' + response.text + '\n')
     response.close()
 
-if __name__ == '__main__':
-    import sqlparse
-    url = 'http://localhost/cloud/local/kmx/v2'
-    sql = 'create deviceType create_dt(s1 String,s2 Float) tags(t1,t2,标签) attributes(属性 属性值,k2 v2)'
-    statements = sqlparse.parse(sql, 'utf-8')
-    for statement in statements:
-        create(url, statement)
