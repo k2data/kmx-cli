@@ -2,9 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import requests
-from colorama import Fore
-
-
 
 
 def get(url):
@@ -24,3 +21,12 @@ def post(url, payload=None, headers={"Content-Type": "application/json"}):
     :return:
     '''
     return requests.post(url, data=payload, headers=headers)
+
+
+def delete(url):
+    '''
+    :param url:
+    :param key:
+    :return:
+    '''
+    return requests.delete(url)

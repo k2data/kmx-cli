@@ -193,8 +193,12 @@ In short,please make sure the data match it's description
 
 ### Batch execution
 ```
-source '${script1_path}','${script2_path}'...
+source '${path1}','${path2}'...
 ```
+* "path" can be file or dir.;
+*  If input multiple paths, should be separated by ','
+
+
 script file content example:
 ```
 show devices;
