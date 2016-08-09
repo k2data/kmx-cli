@@ -164,7 +164,17 @@ create device device_id(device_type_id) tags(t1,t2,...) attributes(k1 v1,k2 v2,.
 * attribute's key and value should be separated by space.
 * attribute's key and value does not suppurt space inside it
 
+### drop metadata
 
+#### drop device-type
+```
+drop device-types device_type_id [,device_type_id]
+```
+
+#### drop devices
+```
+drop devices device_id[,device_id]
+```
 ### import csv data
 ```
 import 'csvfile' into deviceType_id
@@ -193,10 +203,10 @@ In short,please make sure the data match it's description
 
 ### Batch execution
 ```
-source 'path1','path2'...
+source path [,path]...
 ```
-* "path" can be file or dir.;
-*  If input multiple paths, should be separated by ','
+* path can be file or dir.
+
 
 
 script file content example:
