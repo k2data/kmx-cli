@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from colorama import Back
 import json
-from request import get, post
-from pretty import pretty_meta, pretty_meta_list
 
+import sqlparse
+from colorama import Back
+
+import log
+from pretty import pretty_meta, pretty_meta_list
+from request import get, post, delete
 
 charset = 'utf-8'
 
@@ -101,3 +104,46 @@ def create_meta(url, statements):
     response_payload = json.loads(response.text)
     pretty_meta(response_payload, action)
     response.close()
+
+
+def drop_meta(url,statement):
+    tokens = statement.tokens
+    if len(tokens) < 3 or tokens[0].value.strip().lower() != 'drop':
+        print Back.YELLOW + 'Please add table name in your sql. Table name show be in [devices ,device-type] ....' + Back.RESET
+        return
+
+    params = tokens[2].value.strip().split(' ')
+    path = params[0].lower()
+
+    if path != 'devices' and path != 'device-types':
+        print ' Usage : drop table_name [id] .   '
+        print 'Table name show be in [ devices , device-type ] ....'
+        return
+    id = ''
+    if len(params) > 1 :
+        id = params[1]
+
+    uri = url + '/' + path + '/internal/' + id
+    log.info(uri)
+    response = delete(uri)
+    if not response.status_code==200:
+       resopnse_payload = json.loads(response.text)
+    else:
+        # '{"message":"the '+path+' '+ id +' deleted","code":0}'
+        resopnse_payload=json.loads('{"message":"the '+path+' '+ id +' deleted","code":0}')
+
+    if len(params) > 1 :
+        path = path[:-1]
+        if '-' in path:
+            path = 'deviceType'
+        pretty_meta(resopnse_payload, path)
+    else:
+        pretty_meta_list(resopnse_payload, path)
+
+def test_drop_meta(d):
+     drop_meta('http://192.168.130.2/cloud/qa3/kmx/v2',d)
+
+if __name__=='__main__':
+    statements = sqlparse.parse('drop devices dt_dWnkm_N_000_inst_000')
+    for s in statements:
+        test_drop_meta(s)

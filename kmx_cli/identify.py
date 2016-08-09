@@ -2,11 +2,12 @@
 # -*- coding: utf-8 -*-
 
 import copy
-from sqlparse.tokens import DML, DDL, Keyword
-from sqlparse.sql import Identifier, IdentifierList, TokenList
-from colorama import Back
 
-default_identifiers = ['show', 'create', 'select' ]
+from colorama import Back
+from sqlparse.sql import Identifier, IdentifierList, TokenList
+from sqlparse.tokens import DML, DDL, Keyword
+
+default_identifiers = ['show', 'create', 'select' ,'drop']
 custom_identifiers = ['import']
 
 identifiers = copy.deepcopy(default_identifiers)
