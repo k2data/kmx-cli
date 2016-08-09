@@ -42,6 +42,8 @@ def batch_exec(url,sql):
             if os.path.isfile(path.lstrip().rstrip()):
                 file_handler = open(path.lstrip().rstrip())
                 for line in file_handler:
+                    if line.startswith('#') or line.startswith('--') or line[:7].upper()=='SOURCE ':
+                        continue
                     parsed = sqlparse.parse(line[:-1])
                     log.info(line[:-1])
                     cli.transfer(url,parsed)

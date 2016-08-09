@@ -201,17 +201,19 @@ In short,please make sure the data match it's description
 
 
 
-### Batch execution
+### Batch mode
 ```
 source path [,path]...
 ```
 * path can be file or dir.
+* in script file ,the line start with '#' or '--' will not be executed.
+* in script file ,the 'source' command will be ignored.
 
 
 
 script file content example:
 ```
 show devices;
-show device-types;
-select DOUBLE_dt_sync_02_dWavQ from device_sync_01_dWavQ where ts=1469672032196;
+#show device-types;
+--select DOUBLE_dt_sync_02_dWavQ from device_sync_01_dWavQ where ts=1469672032196;
 ```
