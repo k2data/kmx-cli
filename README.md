@@ -168,12 +168,12 @@ create device device_id(device_type_id) tags(t1,t2,...) attributes(k1 v1,k2 v2,.
 
 #### drop device-type
 ```
-drop device-types device_type_id [,device_type_id]
+drop devicetype device_type_id [,device_type_id]
 ```
 
-#### drop devices
+#### drop device
 ```
-drop devices device_id[,device_id]
+drop device device_id [,device_id]
 ```
 ### import csv data
 ```
