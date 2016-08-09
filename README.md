@@ -151,13 +151,13 @@ show devices deviceid     # query devices who's id = deviceid
 
 #### create device-type
 ```
-create device-types device_type_id(sensor1 valueType,sensor2 valueType, ......) tags(t1,t2,...) attributes(k1 v1,k2 v2,....)
+create deviceType dt(sensor1 valueType,sensor2 valueType, ......) tags(t1,t2,...) attributes(k1 v1,k2 v2,....)
 ```
 * valueType is sensor's valueType and must be in [ STRING,DOUBLE,FLOAT,INT,LONG,BOOLEAN]
 
 #### create devices
 ```
-create devices device_id(device_type_id) tags(t1,t2,...) attributes(k1 v1,k2 v2,....)
+create device device_id(device_type_id) tags(t1,t2,...) attributes(k1 v1,k2 v2,....)
 ```
 * "tags" should be separated by ',';
 * "attributes" should be separated by ',';
