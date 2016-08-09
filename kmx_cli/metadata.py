@@ -140,6 +140,20 @@ def drop_meta(url,statement):
     else:
         pretty_meta_list(resopnse_payload, path)
 
+
+
+def ddl_operations(url,statement):
+    tokens = statement.tokens
+    if tokens[0].value.strip().lower() == 'drop':
+        drop_meta(url,statement)
+    # elif len(tokens) < 3 or tokens[0].value.strip().lower() != 'show':
+    #     query_meta(url, statement)
+    elif tokens[0].value.strip().lower() == 'create':
+        create_meta(url, statement)
+    else:
+        print 'Option should be in [ Create , Drop ]'
+
+
 def test_drop_meta(d):
      drop_meta('http://192.168.130.2/cloud/qa3/kmx/v2',d)
 

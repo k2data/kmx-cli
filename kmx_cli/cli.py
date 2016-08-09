@@ -10,7 +10,7 @@ from colorama import Back
 
 import importor
 from identify import isDDL, isDML, isKeyword, isIdentifier, isIdentifierList
-from metadata import query_meta, create_meta
+from metadata import query_meta, ddl_operations
 from query import dyn_query
 
 
@@ -25,7 +25,7 @@ def transfer(url, statements):
         elif isDML(statement):
             dyn_query(url, statement)
         elif isDDL(statement):
-            create_meta(url, statement)
+            ddl_operations(url, statement)
         elif isKeyword(statement):
             query_meta(url, statement)
         elif isIdentifier(statement) or isIdentifierList:
