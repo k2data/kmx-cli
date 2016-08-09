@@ -9,9 +9,18 @@ import sqlparse
 from colorama import Back
 
 import importor
+import create
 from identify import isDDL, isDML, isKeyword, isIdentifier, isIdentifierList
 from metadata import query_meta, ddl_operations
 from query import dyn_query
+
+
+def execute_ddl(url, statement):
+    ddl = statement.tokens[0].value.lower()
+    if ddl == 'create':
+        create.create(url, statement)
+    elif ddl == 'drop':
+        ddl_operations(url, statement)
 
 
 def transfer(url, statements):
@@ -25,7 +34,7 @@ def transfer(url, statements):
         elif isDML(statement):
             dyn_query(url, statement)
         elif isDDL(statement):
-            ddl_operations(url, statement)
+            execute_ddl(url, statement)
         elif isKeyword(statement):
             query_meta(url, statement)
         elif isIdentifier(statement) or isIdentifierList:
