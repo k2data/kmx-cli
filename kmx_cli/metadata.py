@@ -110,7 +110,7 @@ def drop_meta(url,statement):
     tokens = statement.tokens
     if len(tokens) < 3 or tokens[0].value.strip().lower() != 'drop':
         log.error('Error: Syntax error ,please check your input.')
-        log.info('Usage: DROP {DEVICES | DEVICE-TYPES}  id [, id]...' )
+        log.info('Usage: DROP {DEVICE | DEVICETYPE}  id [, id]...' )
         return
 
     params = tokens[2].value.strip().split(' ')
