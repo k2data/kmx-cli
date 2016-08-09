@@ -54,6 +54,9 @@ def isIdentifier(statement):
 def isIdentifierList(statement):
     return identify(statement, 'IdentifierList')
 
+def isWhere(statement):
+    ''' @author: Chang,Xue '''
+    return isinstance(statement, sqlparser.sql.Where)
 
 def find_next_token_by_ttype(sql, lambda_func, target_ttype):
     '''

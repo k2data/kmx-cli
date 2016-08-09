@@ -13,6 +13,7 @@ import create
 from identify import isDDL, isDML, isKeyword, isIdentifier, isIdentifierList
 from metadata import query_meta, ddl_operations
 from query import dyn_query
+import show
 
 
 def execute_ddl(url, statement):
@@ -36,7 +37,7 @@ def transfer(url, statements):
         elif isDDL(statement):
             execute_ddl(url, statement)
         elif isKeyword(statement):
-            query_meta(url, statement)
+            show.do_show(url, statement)
         elif isIdentifier(statement) or isIdentifierList:
             importor.run(url, statement)
         else:
