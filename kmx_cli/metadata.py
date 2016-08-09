@@ -109,36 +109,48 @@ def create_meta(url, statements):
 def drop_meta(url,statement):
     tokens = statement.tokens
     if len(tokens) < 3 or tokens[0].value.strip().lower() != 'drop':
-        print Back.YELLOW + 'Please add table name in your sql. Table name show be in [devices ,device-type] ....' + Back.RESET
+        log.error('Error: Syntax error ,please check your input.')
+        log.info('Usage: DROP {DEVICES | DEVICE-TYPES}  id [, id]...' )
         return
 
     params = tokens[2].value.strip().split(' ')
     path = params[0].lower()
 
     if path != 'devices' and path != 'device-types':
-        print ' Usage : drop table_name [id] .   '
-        print 'Table name show be in [ devices , device-type ] ....'
+        log.error('Error: Syntax error ,please check your input.')
+        log.info('Usage: DROP {DEVICES | DEVICE-TYPES}  id [, id]...')
         return
     id = ''
     if len(params) > 1 :
-        id = params[1]
+        ids = str(params[1])
+    if ids.endswith(','):
+        ids=ids[:-1]
+    for id in ids.split(','):
+        uri = url + '/' + path + '/internal/' + id
+        log.info(uri)
+        response = delete(uri)
+        if not response.status_code==200:
+           resopnse_payload = json.loads(response.text)
+        elif response.status_code==200:
+            # '{"message":"the '+path+' '+ id +' deleted","code":0}'
+            resopnse_payload=json.loads('{"message":"the '+path+' '+ id +' deleted.","code":0}')
+            print
+            log.warn("Warning: The drop command only change the device/device-type to inactive status, related data still exists in database,please delete them manually as needed.")
+        response.close()
+        if len(params) > 1 :
+            path = path[:-1]
+            if '-' in path:
+                path = 'deviceType'
+            pretty_meta(resopnse_payload, path)
+        else:
+            pretty_meta_list(resopnse_payload, path)
 
-    uri = url + '/' + path + '/internal/' + id
-    log.info(uri)
-    response = delete(uri)
-    if not response.status_code==200:
-       resopnse_payload = json.loads(response.text)
-    else:
-        # '{"message":"the '+path+' '+ id +' deleted","code":0}'
-        resopnse_payload=json.loads('{"message":"the '+path+' '+ id +' deleted","code":0}')
+        if path=='device':
+            path='devices'
+        if path=='deviceType':
+            path='device-types'
 
-    if len(params) > 1 :
-        path = path[:-1]
-        if '-' in path:
-            path = 'deviceType'
-        pretty_meta(resopnse_payload, path)
-    else:
-        pretty_meta_list(resopnse_payload, path)
+
 
 
 
@@ -146,8 +158,6 @@ def ddl_operations(url,statement):
     tokens = statement.tokens
     if tokens[0].value.strip().lower() == 'drop':
         drop_meta(url,statement)
-    # elif len(tokens) < 3 or tokens[0].value.strip().lower() != 'show':
-    #     query_meta(url, statement)
     elif tokens[0].value.strip().lower() == 'create':
         create_meta(url, statement)
     else:
@@ -158,6 +168,6 @@ def test_drop_meta(d):
      drop_meta('http://192.168.130.2/cloud/qa3/kmx/v2',d)
 
 if __name__=='__main__':
-    statements = sqlparse.parse('drop devices dt_dWnkm_N_000_inst_000')
+    statements = sqlparse.parse('drop devices dt_dWnkm_N_000_inst_000,dt_dWnkm_N_000_inst_001,dt_dWnkm_N_000_inst_001,')
     for s in statements:
         test_drop_meta(s)
