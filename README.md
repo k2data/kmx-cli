@@ -74,7 +74,7 @@ and
 ### Installation
 ```
 git clone https://github.com/k2data/kmx-cli.git -b dev
-python setup.py install
+./kmx-cli/install.sh
 ```
 
 ### Query data
@@ -136,7 +136,7 @@ select sensor_name
 ```
 *Note, Page and Size is not required, if Page or Size is not set, default value will be used.*
 
-### query metadata
+### Query metadata
 
 ```
 show device-types|devices [id]

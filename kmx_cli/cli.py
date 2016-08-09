@@ -64,6 +64,17 @@ def run():
     url = args.url
 
     if url:
+        welcome = """
+ _   _____  _____   __  _____  _____  __
+| | / /|  \/  |\ \ / / |  _  ||____ |/  |
+| |/ / | .  . | \ V /  | |/' |    / /`| |
+|    \ | |\/| | /   \  |  /| |    \ \ | |
+| |\  \| |  | |/ /^\ \ \ |_/ /.___/ /_| |_
+\_| \_/\_|  |_/\/   \/  \___(_)____(_)___/
+
+
+        """
+        print welcome
         print 'Query URL: ' + Back.GREEN + str(url) + Back.RESET
         client = cli()
         client.url = url
