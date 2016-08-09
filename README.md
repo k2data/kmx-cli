@@ -167,7 +167,7 @@ create devices device_id(device_type_id) tags(t1,t2,...) attributes(k1 v1,k2 v2,
 
 ### import csv data
 ```
-import '${csvfile}' into ${deviceType}
+import 'csvfile' into deviceType_id
 ```
 csv file content example:
 ```
@@ -193,7 +193,7 @@ In short,please make sure the data match it's description
 
 ### Batch execution
 ```
-source '${path1}','${path2}'...
+source 'path1','path2'...
 ```
 * "path" can be file or dir.;
 *  If input multiple paths, should be separated by ','
