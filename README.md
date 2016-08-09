@@ -164,9 +164,9 @@ create device device_id(device_type_id) tags(t1,t2,...) attributes(k1 v1,k2 v2,.
 * attribute's key and value should be separated by space.
 * attribute's key and value does not suppurt space inside it
 
-### drop metadata
+### Drop metadata
 
-#### drop device-type
+#### drop devicetype
 ```
 drop devicetype device_type_id [,device_type_id]
 ```
