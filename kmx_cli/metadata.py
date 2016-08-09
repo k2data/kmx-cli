@@ -115,18 +115,22 @@ def drop_meta(url,statement):
 
     params = tokens[2].value.strip().split(' ')
     path = params[0].lower()
-
-    if path != 'devices' and path != 'device-types':
+    table_type=''
+    if path != 'device' and path != 'devicetype':
         log.error('Error: Syntax error ,please check your input.')
-        log.info('Usage: DROP {DEVICES | DEVICE-TYPES}  id [, id]...')
+        log.info('Usage: DROP {DEVICE | DEVICETYPE}  id [, id]...')
         return
+    if path=='device':
+        table_type='devices'
+    if path=='devicetype':
+        table_type='device-types'
     id = ''
     if len(params) > 1 :
         ids = str(params[1])
     if ids.endswith(','):
         ids=ids[:-1]
     for id in ids.split(','):
-        uri = url + '/' + path + '/internal/' + id
+        uri = url + '/' + table_type + '/internal/' + id
         log.info(uri)
         response = delete(uri)
         if not response.status_code==200:
@@ -138,21 +142,10 @@ def drop_meta(url,statement):
             log.warn("Warning: The drop command only change the device/device-type to inactive status, related data still exists in database,please delete them manually as needed.")
         response.close()
         if len(params) > 1 :
-            path = path[:-1]
-            if '-' in path:
-                path = 'deviceType'
+
             pretty_meta(resopnse_payload, path)
         else:
             pretty_meta_list(resopnse_payload, path)
-
-        if path=='device':
-            path='devices'
-        if path=='deviceType':
-            path='device-types'
-
-
-
-
 
 def ddl_operations(url,statement):
     tokens = statement.tokens
@@ -168,6 +161,6 @@ def test_drop_meta(d):
      drop_meta('http://192.168.130.2/cloud/qa3/kmx/v2',d)
 
 if __name__=='__main__':
-    statements = sqlparse.parse('drop devices dt_dWnkm_N_000_inst_000,dt_dWnkm_N_000_inst_001,dt_dWnkm_N_000_inst_001,')
+    statements = sqlparse.parse('drop devicetype dt_dWnkm_N_000_inst_000,dt_dWnkm_N_000_inst_001,dt_dWnkm_N_000_inst_001,')
     for s in statements:
         test_drop_meta(s)
