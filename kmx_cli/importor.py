@@ -8,9 +8,6 @@ from request import get, post
 import log
 
 
-default_time_format = 'YYYY-MM-DD HH:mm:ss'
-
-
 def is_regist(url):
     response = get(url)
     status_code = response.status_code
@@ -55,12 +52,24 @@ def device_payload(device, device_type_id):
     return json.dumps(dict(id=device, deviceTypeId=device_type_id))
 
 
-def device_type_payload(id, sensor_ids, types):
+def device_type_payload(device, sensor_ids, types):
     sensors = []
     for i in range(len(sensor_ids)):
         sensor = dict(id=sensor_ids[i], valueType=types[i].upper())
         sensors.append(sensor)
-    return json.dumps(dict(id=id, sensors=sensors))
+    return json.dumps(dict(id=device, sensors=sensors))
+
+
+def get_iso(value, time_format="YYYY-MM-DD'T'HH:mm:ss.SSSZ"):
+    return dict(iso=value)
+
+
+def get_timestamp(value, time_format='timestamp'):
+    return dict(timestamp=long(value))
+
+
+def get_custom_time(value, time_format):
+    return dict(iso=str(arrow.get(value, time_format)))
 
 
 def get_sensor_value(value, vt):
@@ -84,7 +93,7 @@ def get_payload(device, sample_time, sensors, types, values):
     return json.dumps(dict(deviceId=device, sampleTime=sample_time, sensorData=sensor_data))
 
 
-def send_data(url, payload, success_writer, fail_writer, line, success, fail):
+def post_data(url, payload, success_writer, fail_writer, line, success, fail):
     response = post(url, payload)
     response_payload = response.text
     code = response.status_code
@@ -100,16 +109,11 @@ def send_data(url, payload, success_writer, fail_writer, line, success, fail):
     return success, fail
 
 
-def print_report(total, success, warn, fail, drop):
-    log.primary('import report : total=%i  success=%i  warn=%i  fail=%i  drop=%i' % (total, success, warn, fail, drop))
-
-
-def send_iso(url, csv, sensors, types):
-    total, success, fail, warn, drop, size = 0, 0, 0, 0, 0, len(sensors) + 2
+def send_data(url, csv, sensors, types, method, time_format):
+    total, success, fail, drop, size = 0, 0, 0, 0, len(sensors) + 2
 
     success_writer = open(csv.name + '.success.log', 'w')
     drop_writer = open(csv.name + '.drop.log', 'w')
-    warn_writer = open(csv.name + '.warn.log', 'w')
     fail_writer = open(csv.name + '.fail.log', 'w')
 
     line = csv.readline().strip()
@@ -117,89 +121,19 @@ def send_iso(url, csv, sensors, types):
         total += 1
         items = line.split(',')
 
-        if len(items) < size:
-            drop += 1
-            drop_writer.write(line)
-        elif len(items) >= size:
-            payload = get_payload(items[0], dict(iso=items[1]), sensors, types, items[2:])
-            success, fail = send_data(url, payload, success_writer, fail_writer, line, success, fail)
-
-            if len(items) > size:
-                warn += 1
-                warn_writer.write(line + '\n')
-
-        line = csv.readline().strip()
-
-    success_writer.close()
-    drop_writer.close()
-    warn_writer.close()
-    fail_writer.close()
-    print_report(total, success, warn, fail, drop)
-
-
-def send_timestamp(url, csv, sensors, types):
-    total, success, fail, warn, drop, size = 0, 0, 0, 0, 0, len(sensors) + 2
-
-    success_writer = open(csv.name + '.success.log', 'w')
-    drop_writer = open(csv.name + '.drop.log', 'w')
-    warn_writer = open(csv.name + '.warn.log', 'w')
-    fail_writer = open(csv.name + '.fail.log', 'w')
-
-    line = csv.readline().strip()
-    while line:
-        total += 1
-        items = line.split(',')
-
-        if len(items) < size:
-            drop += 1
-            drop_writer.write(line)
-        elif len(items) > size:
-            warn += 1
-            warn_writer.write(line)
+        if len(items) == size:
+            simple_time = method(items[1], time_format=time_format)
+            payload = get_payload(items[0], simple_time, sensors, types, items[2:])
+            success, fail = post_data(url, payload, success_writer, fail_writer, line, success, fail)
         else:
-            payload = get_payload(items[0],  dict(timestamp=long(items[1])), sensors, types, items[2:])
-            success, fail = send_data(url, payload, success_writer, fail_writer, line, success, fail)
-        line = csv.readline().strip()
-
-    success_writer.close()
-    drop_writer.close()
-    warn_writer.close()
-    fail_writer.close()
-
-    print_report(total, success, warn, fail, drop)
-
-
-def send_time(url, csv, time_format, sensors, types):
-    total, success, fail, warn, drop, size = 0, 0, 0, 0, 0, len(sensors) + 2
-
-    success_writer = open(csv.name + '.success.log', 'w')
-    drop_writer = open(csv.name + '.drop.log', 'w')
-    warn_writer = open(csv.name + '.warn.log', 'w')
-    fail_writer = open(csv.name + '.fail.log', 'w')
-
-    line = csv.readline().strip()
-    while line:
-        total += 1
-        items = line.split(',')
-
-        if len(items) < size:
             drop += 1
             drop_writer.write(line)
-        elif len(items) > size:
-            warn += 1
-            warn_writer.write(line)
-        else:
-            iso = str(arrow.get(items[1], time_format))
-            payload = get_payload(items[0], dict(iso=iso), sensors, types, items[2:])
-            success, fail = send_data(url, payload, success_writer, fail_writer, line, success, fail)
         line = csv.readline().strip()
 
     success_writer.close()
     drop_writer.close()
-    warn_writer.close()
     fail_writer.close()
-
-    print_report(total, success, warn, fail, drop)
+    log.primary('import report : total=%i  success=%i  fail=%i  drop=%i' % (total, success, fail, drop))
 
 
 def usage():
@@ -233,7 +167,7 @@ def parse_sql(statement):
     return path, tokens[6].value.encode("utf-8").strip()
 
 
-def parse_heads(csv, path):
+def parse_description(csv, path):
     line = csv.readline().strip()
     # 解析第一行,拿到时间标示和sensor信息
     if line:
@@ -261,6 +195,7 @@ def parse_heads(csv, path):
 
 
 def run(url, statement):
+    key = 'iso'
     items = parse_sql(statement)
     if not items or len(items) < 2:
         return
@@ -268,19 +203,20 @@ def run(url, statement):
     path, device_type = items
 
     csv = open(path, 'r')
-    headers = parse_heads(csv, path)
-    if not headers or len(headers) < 2:
+    description = parse_description(csv, path)
+    if not description or len(description) < 2:
         csv.close()
         return
-
-    sensors, device, time_str, time_format,types = headers
+    sensors, device, time_mark, time_format, types = description
 
     #  检查device-type 和 devices是否注册，没有则自动注册
+    log.default(' check if deviceType:' + device_type + ' is registed and PUBLISHED')
     if not is_regist(url + '/device-types/' + device_type):
         log.primary(' deviceType：' + device_type + " doesn't be registered, will regist automatically")
         regist(url + '/device-types',device_type_payload(device_type, sensors, types))
     success = wait_published(url + '/device-types/' + device_type,key='deviceType')
 
+    log.default(' check if device:' + device + ' is registed and PUBLISHED')
     if success and not is_regist(url + '/devices/' + device):
         log.primary(' device：' + device + " doesn't be registered, will regist automatically")
         regist(url + '/devices',device_payload(device, device_type))
@@ -289,13 +225,16 @@ def run(url, statement):
     if success:
         log.default('.....................start import ')
         post_data_url = url + '/channels/devices/data'
-        if time_str.lower() == 'iso':
-            send_iso(post_data_url, csv, sensors, types)
-        elif time_str.lower() == 'ts' or time == 'timestamp':
-            send_timestamp(post_data_url, csv, sensors, types)
+        
+        if time_mark.lower() == 'iso':
+            method = get_iso
+        elif time_mark.lower() == 'ts' or time == 'timestamp':
+            method = get_timestamp
+            key = 'timestamp'
         else:
-            send_time(post_data_url, csv, time_format, sensors, types)
+            method = get_custom_time
 
+        send_data(post_data_url, csv, sensors, types, method, time_format)
         csv.close()
         log.default('.....................finished import')
     else:

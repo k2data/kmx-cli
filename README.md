@@ -136,7 +136,7 @@ select sensor_name
 ```
 *Note, Page and Size is not required, if Page or Size is not set, default value will be used.*
 
-### query metadata
+### Query metadata
 
 ```
 show device-types|devices [id]
@@ -147,15 +147,15 @@ show device-types         # query all device-types
 show devices deviceid     # query devices who's id = deviceid
 ```
 
-### create metadata
+### Create metadata
 
-#### create device-type
+#### Create deviceType
 ```
-create deviceType dt(sensor1 valueType,sensor2 valueType, ......) tags(t1,t2,...) attributes(k1 v1,k2 v2,....)
+create deviceType deviceTypeId(sensor1 valueType,sensor2 valueType, ......) tags(t1,t2,...) attributes(k1 v1,k2 v2,....)
 ```
 * valueType is sensor's valueType and must be in [ STRING,DOUBLE,FLOAT,INT,LONG,BOOLEAN]
 
-#### create devices
+#### Create device
 ```
 create device device_id(device_type_id) tags(t1,t2,...) attributes(k1 v1,k2 v2,....)
 ```
@@ -164,18 +164,8 @@ create device device_id(device_type_id) tags(t1,t2,...) attributes(k1 v1,k2 v2,.
 * attribute's key and value should be separated by space.
 * attribute's key and value does not suppurt space inside it
 
-### drop metadata
 
-#### drop device-type
-```
-drop devicetype device_type_id [,device_type_id]
-```
-
-#### drop device
-```
-drop device device_id [,device_id]
-```
-### import csv data
+### Import csv data
 ```
 import 'csvfile' into deviceType_id
 ```
@@ -203,10 +193,10 @@ In short,please make sure the data match it's description
 
 ### Batch execution
 ```
-source path [,path]...
+source 'path1','path2'...
 ```
-* path can be file or dir.
-
+* "path" can be file or dir.;
+*  If input multiple paths, should be separated by ','
 
 
 script file content example:
