@@ -3,7 +3,7 @@
 
 import copy
 from sqlparse.tokens import DML, DDL, Keyword
-from sqlparse.sql import Identifier,IdentifierList
+from sqlparse.sql import Identifier, IdentifierList, TokenList
 from colorama import Back
 
 default_identifiers = ['show', 'create', 'select' ]
@@ -53,6 +53,36 @@ def isIdentifier(statement):
 def isIdentifierList(statement):
     return identify(statement, 'IdentifierList')
 
+# find_next_token_by_ttype("show tables like '%ddd%'", lambda t: t.value.upper() == 'TABLES', Keyword)
+# find_next_token_by_ttype("select longitudeNum from C2063B where ts>'now-3d' and ts < 'now' size 30 page 2 size 10", lambda t: t.value.upper() == 'PAGE', Literal.Number.Integer)
+def find_next_token_by_ttype(sql, lambda_func, target_ttype):
+    import sqlparse
+    parsed = sqlparse.parse(sql)
+    for sql in parsed:
+        tokens = TokenList(sql.tokens)
+        if isinstance(tokens, TokenList):
+            tokens = list(tokens.flatten())
+            tokens = TokenList(tokens)
+            source_token = tokens.token_matching(lambda_func, 0)
+            if source_token:
+                source_idx = tokens.token_index(source_token, 0)
+                start = source_idx + 1
+                find = True
+                from sqlparse.tokens import Whitespace
+                while tokens[start].ttype is not target_ttype or tokens[start].ttype is Whitespace:
+                    if start < len(list(tokens)) - 1:
+                        start += 1
+                    else:
+                        find = False
+                        break
+                # print start
+                if find:
+                    target = tokens[start].value
+                else:
+                    target = None
+                # print source_token
+                # print target
+    return source_token,target
 
 if __name__ == '__main__':
     import sqlparse
@@ -64,4 +94,3 @@ if __name__ == '__main__':
         print '"' + str(statement.tokens[0]) + '" isIdentifier : ' + str(isIdentifier(statement))
         print '"' + str(statement.tokens[0]) + '" isIdentifierList : ' + str(isIdentifierList(statement))
         print
-
