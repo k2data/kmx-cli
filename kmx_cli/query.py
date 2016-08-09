@@ -12,6 +12,7 @@ import arrow
 import re
 import copy
 import json
+import timeit
 
 from request import get
 from pretty import pretty_data_query
@@ -190,13 +191,16 @@ def dyn_query(url, dml):
         uri = url + '/data/' + query_url + '?select=' + json.dumps(select)
     print Fore.BLUE + uri + Fore.RESET
     print
+    start_time = timeit.default_timer()
     response = get(uri)
+    elapsed = timeit.default_timer() - start_time
     rc = response.status_code
     if rc != 200:
         print 'Code: ' + str(rc)
         print response.text
     else:
         pretty_data_query(json.loads(response.text))
+        print 'Returned in %.2f s' % elapsed
     response.close()
 
 
