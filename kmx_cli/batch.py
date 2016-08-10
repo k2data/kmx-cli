@@ -30,8 +30,8 @@ def get_allfilepath(path):
 
 def batch_exec(url,sql):
     if str(sql).rstrip().lstrip().upper()=='SOURCE':
-        log.error('Please enter at least one script path after the keyword "SOURCE"')
-        log.info('Usage: SOURCE Script1,Script2...')
+        log.error('Syntax error :Please enter at least one script-path after the keyword "SOURCE"')
+        log.info('Usage: SOURCE path [,path]...')
         return
     script_path = get_batchparameters(sql)
     if (script_path).endswith(','):
