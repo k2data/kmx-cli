@@ -93,7 +93,7 @@ def find_next_token_by_ttype(sql, lambda_func, target_ttype):
 
 if __name__ == '__main__':
     import sqlparse
-    statements = sqlparse.parse('import data.csv into test_deviceType;select * from devices;create devices id(deviceTypeId) tags(t1,t2) attributes(k1 v1,k2 v2);show devices;test a')
+    statements = sqlparse.parse('import data.csv into test_deviceType;select * from devices;create devices id(deviceTypeId) tags(t1,t2) attributes(k1 v1,k2 v2);show devices;testdcz; dafs a')
     for statement in statements:
         print '"' + str(statement.tokens[0]) + '" isDML : ' + str(isDML(statement))
         print '"' + str(statement.tokens[0]) + '" isDDL : ' + str(isDDL(statement))

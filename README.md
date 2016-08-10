@@ -179,7 +179,31 @@ drop devicetype device_type_id [,device_type_id]
 #### drop device
 ```
 drop device device_id [,device_id]
+
 ```
+
+### update metadata
+#### update deviceType
+```
+update devicetype set tags =(x , xx , xxx), attributes = (k1 v1, "k2" v2) where id='{device_type_id}'',
+update devicetype set tags =(x, "xx" , 'xxx'), attributes = ('k1' "v1", "k2" v2) where id="device_type_id",
+update devicetype set tags = (x,"xx",'xxx'), attributes=('k1' "v1", "k2" v2) where id=device_type_id,
+```
+* tags and attributes should be separated by ',' and enclosed with brackets;
+* attribute's key and value should be separated by space.
+* attribute's key and value does not suppurt space inside it
+
+#### update device
+```
+update device set deviceTypeId={device_type_id} ,tags =(x , 'xx' , "xxx"), attributes = (k1 v1, "k2" v2,'k3' 'v3') where id =device_id
+update device set deviceTypeId={'device_type_id}' ,tags =(x , 'xx' , "xxx"), attributes = (k1 v1, "k2" v2,'k3' 'v3') where id ='{device_id}'
+update device set deviceTypeId={"device_type_id"} ,tags =(x , 'xx' , "xxx"), attributes = (k1 v1, "k2" v2,'k3' 'v3') where id ="{device_id}""
+
+```
+* tags and attributes should be separated by ',' and enclosed with brackets;
+* attribute's key and value should be separated by space.
+
+
 ### import csv data
 ```
 import 'csvfile' into deviceType_id

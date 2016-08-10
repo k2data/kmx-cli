@@ -38,6 +38,7 @@ sqls = [
 
     'update devicetype set tags =(x , xx , xxx), attributes = (k1 v1, "k2" v2) where id = "' + device_type+ '"',
     'update device set deviceTypeId=update_' + device_type + ' ,tags =(x , xx , xxx), attributes = (k1 v1, "k2" v2) where id = "' + device + '"'
+    'eguiesdf'
 ]
 
 for sql in sqls:

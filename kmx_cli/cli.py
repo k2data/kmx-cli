@@ -46,7 +46,7 @@ def transfer(url, statements):
             execute_ddl(url, statement)
         elif isKeyword(statement):
             query_meta(url, statement)
-        elif isIdentifier(statement) or isIdentifierList:
+        elif isIdentifier(statement) or isIdentifierList(statement):
             importor.run(url, statement)
         else:
             print Back.RED + 'The input statement "' + str(statement) + '" is not supported ...' + Back.RESET
