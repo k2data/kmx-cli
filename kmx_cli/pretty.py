@@ -17,6 +17,11 @@ def pretty_data_query(payload, format='psql'):
                 detail see https://pypi.python.org/pypi/tabulate
         Note: 范围查询可能有重复数据， 单设备-传感器时间点查询只返回一行
     '''
+    if format == 'json':
+        print json.dumps(payload, sort_keys=True, indent=4)
+        print
+        return
+
     result = []
     headers = ['device', 'time']
     non_exist = '-'  # show when key does not exist
@@ -70,11 +75,16 @@ def pretty_data_query(payload, format='psql'):
     if payload['code'] == 0:
         log.default(payload['message'])
     else:
-        log.error(err_msg)
+        log.error(payload['message'])
+    return payload['code']
 
 def pretty_meta_list(payload, action, format='psql'):
-    if not action:
-        print json.dumps(payload, sort_keys=True, indent=4) + '\n'
+    ''' query all devices or device-types
+        @action: devices, deviceTypes
+    '''
+    if format == 'json':
+        print json.dumps(payload, sort_keys=True, indent=4)
+        print
         return
 
     results = []
@@ -97,8 +107,15 @@ def pretty_meta_list(payload, action, format='psql'):
     if pages:
         pretty_page(pages)
 
-
 def pretty_meta(payload, path, format='psql'):
+    ''' query single device or device-types
+        @path: deviceType, device
+    '''
+    if format == 'json':
+        print json.dumps(payload, sort_keys=True, indent=4)
+        print
+        return
+
     result = []
     rows = []
     sensors = []
@@ -126,4 +143,3 @@ def pretty_meta(payload, path, format='psql'):
         print tabulate(sensor_rows, keys, tablefmt=format) + '\n'
 
     print tabulate(result, headers, tablefmt=format)
-    print

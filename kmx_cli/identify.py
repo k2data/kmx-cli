@@ -4,8 +4,9 @@
 import copy
 
 from colorama import Back
-from sqlparse.sql import Identifier, IdentifierList, TokenList
+from sqlparse.sql import Identifier, IdentifierList, TokenList, Token, Where, Comparison
 from sqlparse.tokens import DML, DDL, Keyword
+import log
 
 default_identifiers = ['show', 'create', 'select', 'drop', 'update']
 custom_identifiers = ['import']
@@ -15,7 +16,7 @@ identifiers.extend(custom_identifiers)
 
 
 def unrecognized(statement):
-    print Back.RED + 'command： <' + statement.tokens[0].value.encode("utf-8").split(' ')[0] + '> is not supported. Only supported: ' + ','.join(identifiers) + Back.RESET
+    log.error('command： <' + statement.tokens[0].value.encode("utf-8").split(' ')[0] + '> is not supported. Only supported: ' + ','.join(identifiers))
 
 
 def identify(statement, category):
@@ -53,6 +54,26 @@ def isIdentifier(statement):
 
 def isIdentifierList(statement):
     return identify(statement, 'IdentifierList')
+
+def isWhere(statement):
+    ''' @author: Chang,Xue '''
+    return isinstance(statement, Where)
+
+def canIgnore(statement):
+    ''' match Whitespace, Punctuation '''
+    if hasattr(statement, 'ttype'):
+        return str(statement.ttype) in ('Token.Text.Whitespace', 'Token.Punctuation')
+    return False
+
+def isWildcard(statement):
+    ''' @author: Chang,Xue
+        match Wildcard '''
+    return not hasattr(statement, 'ttype') or str(statement.ttype) == 'Token.Wildcard'
+
+def isComparison(statement):
+    '''@author: Chang,Xue
+       match Wildcard '''
+    return isinstance(statement, Comparison)
 
 
 def find_next_token_by_ttype(sql, lambda_func, target_ttype):
