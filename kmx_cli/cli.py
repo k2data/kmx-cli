@@ -5,7 +5,7 @@ Usage:
      e.g.
      ./cli.py -u http://192.168.130.2/cloud/qa3/kmx/v2
 '''
-
+import argparse
 import cmd
 import socket
 
@@ -71,6 +71,14 @@ class cli(cmd.Cmd):
     def default(self, line):
         self.kmxcmd(self.url, line)
 
+    def emptyline(self):
+        """Called when an empty line is entered in response to the prompt.
+
+        Just pass, do nothing.
+
+        """
+        pass
+
     def preloop(self):
         """Initialization before prompting user for commands.
            Despite the claims in the Cmd documentaion, Cmd.preloop() is not a stub.
@@ -83,7 +91,8 @@ class cli(cmd.Cmd):
             it has been interpreted. If you want to modifdy the input line
             before execution (for example, variable substitution) do it here.
         """
-        self._hist += [ line.strip() ]
+        if line:
+            self._hist += [ line.strip() ]
         return line
 
     def do_history(self, line):
@@ -113,27 +122,32 @@ class cli(cmd.Cmd):
         parsed = sqlparse.parse(sql)
         transfer(self.url,parsed)
 
-def run(url):
-    welcome = """
+def run():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-u', '--url', help='Input HTTP REST URL of your KMX query engine.')
+    args = parser.parse_args()
+    url = args.url
+
+    if url:
+        welcome = """
  _   _____  _____   __  _____  _____  __
 | | / /|  \/  |\ \ / / |  _  ||____ |/  |
 | |/ / | .  . | \ V /  | |/' |    / /`| |
 |    \ | |\/| | /   \  |  /| |    \ \ | |
 | |\  \| |  | |/ /^\ \ \ |_/ /.___/ /_| |_
 \_| \_/\_|  |_/\/   \/  \___(_)____(_)___/
-
-
         """
-    print welcome
-    print 'Query URL: ' + Back.GREEN + str(url) + Back.RESET
-    client = cli()
-    client.url = url
-    client.cmdloop()
+        print welcome
+        print 'Query URL: ' + Back.GREEN + str(url) + Back.RESET
+        client = cli()
+        client.url = url
+        client.cmdloop()
+
+    else:
+        print 'You must provide an HTTP REST URL for KMX query ...'
+        print 'Use -u or --url to init URL'
+        print 'Use -h to get help ...'
+
 
 if __name__ == '__main__':
-    import argparse
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('-u', '--url', required=True, help='Input HTTP REST URL of your KMX query engine.')
-    args = parser.parse_args()
-
-    run(args.url)
+    run()
