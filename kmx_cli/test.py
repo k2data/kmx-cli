@@ -11,6 +11,7 @@ device = 'test_d_' + num
 
 sqls = [
     'create deviceType ' + device_type + '(s1 String,s2 Float) tags(t1,t2,标签) attributes(属性 属性值,k2 v2)',
+    'create deviceType update_' + device_type + '(s1 String,s2 Float) tags(t1,t2,标签) attributes(属性 属性值,k2 v2)',
     'create device ' + device + '(' + device_type + ') tags(t1,t2,标签) attributes(属性 属性值,k2 v2)',
 
     'show devices',
@@ -33,10 +34,14 @@ sqls = [
     "import testdata/test.csv into " + device_type,
     "import test.csv into " + device_type,
     "import 'testdata/test.csv' into " + device_type,
-    "import '../build/data.csv' into " + device_type
+    "import '../build/data.csv' into " + device_type,
+
+    'update devicetype set tags =(x , xx , xxx), attributes = (k1 v1, "k2" v2) where id = "' + device_type+ '"',
+    'update device set deviceTypeId=update_' + device_type + ' ,tags =(x , xx , xxx), attributes = (k1 v1, "k2" v2) where id = "' + device + '"'
 ]
 
 for sql in sqls:
     statements = sqlparse.parse(sql, 'utf-8')
+    print 'execute :\t' + sql
     for statement in statements:
         cli.transfer('http://192.168.130.2/cloud/qa3/kmx/v2', statements)

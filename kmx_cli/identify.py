@@ -7,7 +7,7 @@ from colorama import Back
 from sqlparse.sql import Identifier, IdentifierList, TokenList
 from sqlparse.tokens import DML, DDL, Keyword
 
-default_identifiers = ['show', 'create', 'select' ,'drop']
+default_identifiers = ['show', 'create', 'select', 'drop', 'update']
 custom_identifiers = ['import']
 
 identifiers = copy.deepcopy(default_identifiers)
