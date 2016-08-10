@@ -68,11 +68,50 @@ class cli(cmd.Cmd):
     ip = socket.gethostbyname(hostname);
     prompt = '[' + hostname + '@' + ip + '] > '
 
-    def onecmd(self, sql):
+    def default(self, line):
+        self.kmxcmd(self.url, line)
+
+    def preloop(self):
+        """Initialization before prompting user for commands.
+           Despite the claims in the Cmd documentaion, Cmd.preloop() is not a stub.
+        """
+        cmd.Cmd.preloop(self)
+        self._hist    = []
+
+    def precmd(self, line):
+        """ This method is called after the line has been input but before
+            it has been interpreted. If you want to modifdy the input line
+            before execution (for example, variable substitution) do it here.
+        """
+        self._hist += [ line.strip() ]
+        return line
+
+    def do_history(self, line):
+        """Print a list of commands that have been entered"""
+        for cmdline in self._hist:
+            print cmdline
+
+    def do_bye(self, line):
+        return True
+
+    def do_exit(self, line):
+        return True
+
+    def do_shell(self, line):
+        "Run a shell command"
+        # print "running shell command:", line
+        import os
+        output = os.popen(line).read()
+        print output
+        self.last_output = output
+
+    def do_url(self, line):
+        self.url = line
+        print 'New URL: ' + self.url
+
+    def kmxcmd(self, url, sql):
         parsed = sqlparse.parse(sql)
-        rc = transfer(self.url,parsed)
-        if rc == 'stop':
-            return True
+        transfer(self.url,parsed)
 
 def run(url):
     welcome = """
