@@ -5,11 +5,11 @@ import setuptools
 from setuptools import setup
 
 setup(name="kmx_cli",
-      version='0.0.1',
+      version='0.0.4',
       packages=[
           'kmx_cli'
       ],
-      description='Command line interface for KMX query in SQL like style',
+      description='Command line interface for KMX',
       author='Yang Rui',
       author_email='yangrui@k2data.com.cn',
       url='http://www.k2data.com.cn',
