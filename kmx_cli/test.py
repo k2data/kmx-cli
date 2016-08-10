@@ -11,7 +11,7 @@ device = 'test_d_' + num
 
 sqls = [
     'create deviceType ' + device_type + '(s1 String,s2 Float) tags(t1,t2,标签) attributes(属性 属性值,k2 v2)',
-    'create device ' + device + '(create_dt_' + num + ') tags(t1,t2) attributes(k1 v1,k2 v2)',
+    'create device ' + device + '(' + device_type + ') tags(t1,t2,标签) attributes(属性 属性值,k2 v2)',
 
     'show devices',
     'show devices ' + device,

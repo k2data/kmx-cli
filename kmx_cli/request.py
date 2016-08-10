@@ -23,6 +23,16 @@ def post(url, payload=None, headers={"Content-Type": "application/json"}):
     return requests.post(url, data=payload, headers=headers)
 
 
+def put(url, payload=None, headers={"Content-Type": "application/json"}):
+    '''
+    :param url:
+    :param payload:
+    :param headers:
+    :return:
+    '''
+    return requests.put(url, data=payload, headers=headers)
+
+
 def delete(url):
     '''
     :param url:
