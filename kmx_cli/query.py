@@ -16,6 +16,7 @@ import timeit
 
 from request import get
 from pretty import pretty_data_query
+import log
 
 close_list = list(Where.M_CLOSE[1])
 close_list.append('PAGE')
@@ -64,7 +65,7 @@ def get_tables(sql):
 
 def relative_time_parser(relativeStr, format):
     if format.upper() <> 'ISO' and format.upper() <> 'TIMESTAMP':
-        print 'The time format is either not ISO or TIMESTAMP'
+        log.error('The time format is either not ISO or TIMESTAMP')
         return relativeStr
     if relativeStr.upper() == 'NOW':
         if format.upper() == 'ISO':
@@ -88,13 +89,12 @@ def relative_time_parser(relativeStr, format):
                 unit = 'weeks'
             replaceStr = unit + "=%s%s" % (segments[0][1],segments[0][2])
             param = {unit:int("%s%s" % (segments[0][1],segments[0][2]))}
-            # print param
             if format.upper() == 'ISO':
                 return arrow.now().replace(**param).format('YYYY-MM-DDTHH:mm:ss.SSSZZ').replace("+","%2B")
             elif format.upper() == 'TIMESTAMP':
                 return int(round(arrow.now().replace(**param).float_timestamp * 1000))
         else:
-            print 'The relative time format is wrong ...'
+            log.error('The relative time format is wrong ...')
             return relativeStr
 
 
@@ -102,7 +102,6 @@ def get_where(sql):
     tokens = sql.tokens
     for token in tokens:
         if isinstance(token, Where):
-            # print token.value
             pointQueryValue = {}
             pointQuery = {"sampleTime": pointQueryValue}
 
@@ -152,15 +151,15 @@ def get_where(sql):
 def dyn_query(url, dml):
     devices = get_tables(dml)
     if not devices:
-        print 'Device should be provided ...'
+        log.error('Device should be provided ...')
         return
     if len(devices) > 1:
-        print 'Multi-devices query is not supported now ...'
+        log.error('Multi-devices query is not supported now ...')
         return
     sensors = get_columns(dml)
     predicate = get_where(dml)
     if not predicate:
-        print 'The select statement does NOT contain WHERE predicates, currently is not supported ...'
+        log.error('The select statement does NOT contain WHERE predicates, currently is not supported ...')
         return None
     query_url = 'data-points'
     if predicate.has_key('sampleTime'):
@@ -171,7 +170,7 @@ def dyn_query(url, dml):
         value = predicate['timeRange']
         query_url = 'data-rows'
     else:
-        print 'The query is not supported now ...'
+        log.error('The query is not supported now ...')
 
     sources = {"device": devices[0], "sensors": sensors}
     sources[key] = value
@@ -189,18 +188,18 @@ def dyn_query(url, dml):
         uri = url + '/data/' + query_url + '?select=' + json.dumps(select) + page_size
     else:
         uri = url + '/data/' + query_url + '?select=' + json.dumps(select)
-    print Fore.BLUE + uri + Fore.RESET
+    log.primary(uri)
     print
     start_time = timeit.default_timer()
     response = get(uri)
     elapsed = timeit.default_timer() - start_time
     rc = response.status_code
     if rc != 200:
-        print 'Code: ' + str(rc)
-        print response.text
+        log.error('Code: ' + str(rc))
+        log.error(response.text)
     else:
         pretty_data_query(json.loads(response.text))
-        print 'Returned in %.2f s' % elapsed
+        log.default('Returned in %.2f s' % elapsed)
     response.close()
 
 
@@ -215,7 +214,6 @@ def get_page_size(sql):
             while tokens[page_idx].ttype is not Literal.Number.Integer:
                 page_idx += 1
             page = tokens[page_idx].value
-            print page
 
         size_token = tokens.token_matching([lambda t: t.value.upper() == 'SIZE'],0)
         if size_token:
@@ -223,5 +221,4 @@ def get_page_size(sql):
             while tokens[size_idx].ttype is not Literal.Number.Integer:
                 size_idx += 1
             size = tokens[size_idx].value
-            print size
     return page,size
