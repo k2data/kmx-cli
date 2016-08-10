@@ -144,12 +144,16 @@ select sensor_name
 ### Query metadata
 
 ```
-show device-types|devices [id]
+show {devicetype|device} id
+show {devicetypes|devices} [like xxx]|[where key=value]
 ```
 example:
 ```
-show device-types         # query all device-types
-show devices deviceid     # query devices who's id = deviceid
+show devicetypes         # query all device-types
+show devices             # query all devices
+show device deviceid     # query devices who's id = deviceid
+show devices where devicetype=xxx # qurey all devices whoese deviceTypeId = xxx
+show devices like xxx    # query all devices match xxx, wildcard:_,%,*
 ```
 
 ### Create metadata

@@ -16,11 +16,18 @@ sqls = [
 
     'show devices',
     'show devices ' + device,
-    'show devices non_existent_device',
+    'show device ' + device,
+    'show device non_existent_device',
+    'show devices like GW150020 ',
+    'show devices like GW1500%',
+    'show devices where devicetype=gw_dt_1',
 
-    'show device-types',
-    'show device-types ' + device_type,
-    'show device-types non_existent_deviceType',
+    'show devicetypes',
+    'show devicetypes ' + device_type,
+    'show devicetype ' + device_type,
+    'show devicetype non_existent_deviceType',
+    'show devicetypes like gw_dt_1',
+    'show devicetypes like gw*',
 
     'select DOUBLE_dt_sync_02_dWavQ from device_sync_01_dWavQ where ts=1469672032196',
 
@@ -37,7 +44,7 @@ sqls = [
     "import '../build/data.csv' into " + device_type,
 
     'update devicetype set tags =(x , xx , xxx), attributes = (k1 v1, "k2" v2) where id = "' + device_type+ '"',
-    'update device set deviceTypeId=update_' + device_type + ' ,tags =(x , xx , xxx), attributes = (k1 v1, "k2" v2) where id = "' + device + '"'
+    'update device set deviceTypeId=update_' + device_type + ' ,tags =(x , xx , xxx), attributes = (k1 v1, "k2" v2) where id = "' + device + '"',
     'eguiesdf'
 ]
 

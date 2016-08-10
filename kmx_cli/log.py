@@ -9,23 +9,23 @@ def default(message):
 
 
 def info(message):
-    print Fore.CYAN + message + Fore.RESET
+    print '%s%s%s'%(Fore.CYAN, message, Fore.RESET)
 
 
 def primary(message):
-    print Fore.BLUE + message + Fore.RESET
+    print '%s%s%s'%(Fore.BLUE, message, Fore.RESET)
 
 
 def success(message):
-    print Fore.GREEN + message + Fore.RESET
+    print '%s%s%s'%(Fore.GREEN, message, Fore.RESET)
 
 
 def warn(message):
-    print Fore.YELLOW + message + Fore.RESET
+    print '%s%s%s'%(Fore.YELLOW, message, Fore.RESET)
 
 
 def error(message):
-    print Back.RED + message + Fore.RESET
+    print '%s%s%s'%(Back.RED, message, Back.RESET)
 
 
 if __name__ == '__main__':
