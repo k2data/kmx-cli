@@ -3,7 +3,7 @@
 '''
 Usage:
      e.g.
-     ./cli.py -u http://192.168.130.2/cloud/qa3/kmx/v2
+     kmx_cli -u http://192.168.130.2/cloud/qa3/kmx/v2
 '''
 import argparse
 import cmd
@@ -84,15 +84,15 @@ class cli(cmd.Cmd):
            Despite the claims in the Cmd documentaion, Cmd.preloop() is not a stub.
         """
         cmd.Cmd.preloop(self)
-        self._hist    = []
+        self._hist = []
 
     def precmd(self, line):
         """ This method is called after the line has been input but before
             it has been interpreted. If you want to modifdy the input line
             before execution (for example, variable substitution) do it here.
         """
-        if line:
-            self._hist += [ line.strip() ]
+        if line and line.upper() != 'HISTORY':
+            self._hist += [line.strip()]
         return line
 
     def do_history(self, line):
@@ -116,11 +116,12 @@ class cli(cmd.Cmd):
 
     def do_url(self, line):
         self.url = line
-        print 'New URL: ' + self.url
+        print 'New URL: ' + Back.GREEN + self.url + Back.RESET
 
     def kmxcmd(self, url, sql):
         parsed = sqlparse.parse(sql)
-        transfer(self.url,parsed)
+        transfer(self.url, parsed)
+
 
 def run():
     parser = argparse.ArgumentParser()

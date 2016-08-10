@@ -250,3 +250,33 @@ show devices;
 #show device-types;
 --select DOUBLE_dt_sync_02_dWavQ from device_sync_01_dWavQ where ts=1469672032196;
 ```
+
+### Switch URL in context
+You can switch URL in kmx-cli, just type "url <new_url>" like:
+```
+Query URL: http://218.56.128.30:16805/kmx/v2
+[rui@127.0.0.1] > url http://192.168.130.2/cloud/qa3/kmx/v2
+New URL: http://192.168.130.2/cloud/qa3/kmx/v2
+```
+
+### Execute shell command in kmx-cli
+Use "!" as suffix to indicate this command is a shell one.
+```
+[rui@127.0.0.1] > !pwd
+/home/pc/PycharmProjects/kmx-cli
+```
+
+### Browse command history
+Use "history" to browse execution history.
+```
+[rui@127.0.0.1] > history
+show devicetypes
+show devices where devicetype = A1
+show devices like C302D_
+show devices like C302D%
+show devices like %302D%
+show device C302DE
+select oilLevel from C302DE where ts > 'now-1h' and ts < 'now'
+select oilLevel,oilTemperature from C302DE where ts > 'now-1h' and ts < 'now'
+select oilLevel,oilTemperature from C302DE where ts > 'now-1d' and ts < 'now'
+```
