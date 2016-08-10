@@ -7,6 +7,7 @@ from sqlparse.sql import Identifier, IdentifierList, Where, Token, Parenthesis
 from sqlparse.sql import Comparison as sqlComparison
 import log
 import request
+import pretty
 
 tables = ['device', 'devicetype']
 
@@ -128,8 +129,9 @@ def parse_set(token):
 
 def parse_sql(tokens):
     primary = parse_where(tokens[8])
-    payload = json.dumps(parse_set(tokens[6]), ensure_ascii=False)
-    return primary, payload
+    payload = parse_set(tokens[6])
+    payload['id'] = primary
+    return primary, json.dumps(payload, ensure_ascii=False)
 
 
 def update(url, statement):
@@ -148,26 +150,20 @@ def update(url, statement):
         return
 
     url_path = table + 's'
+    key = 'device'
     if url_path == 'devicetypes':
         url_path = 'device-types'
+        key = 'deviceType'
 
     primary, payload = parse_sql(tokens)
     if not primary or not payload:
         return
+
     uri = url + '/' + url_path + '/' + primary
-    response = request.put(url, payload=payload)
+    response = request.put(uri, payload=payload)
+
     log.default('put : %s\n%s' % (uri, payload))
-    log.info('%s %s\n%s' % (response.status_code, response.reason, response.text))
+    log.info('%s %s' % (response.status_code, response.reason))
+    pretty.pretty_meta(json.loads(response.text),key)
+
     response.close()
-
-
-if __name__ == '__main__':
-    import sqlparse
-    # sql = ['update devicetype set deviceTypeId = "a" where id = "deviceId"', "update devicetype set deviceTypeId = 'x' where id > 'deviceId'"]
-    sql = ['update device set deviceTypeId="a" , tags =(x , xx , xxx), attributes = (k1 v1, "k2" v2) where id = "deviceId"']
-    for s in sql:
-        statements = sqlparse.parse(s, 'utf-8')
-        for statement in statements:
-            update('http://192.168.130.2/cloud/qa3/kmx/v2', statement)
-
-

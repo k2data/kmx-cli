@@ -10,6 +10,7 @@ from colorama import Back
 
 import importor
 import create
+import update
 from identify import isDDL, isDML, isKeyword, isIdentifier, isIdentifierList
 from metadata import query_meta, ddl_operations
 from query import dyn_query
@@ -23,6 +24,14 @@ def execute_ddl(url, statement):
         ddl_operations(url, statement)
 
 
+def execute_dml(url, statement):
+    dml = statement.tokens[0].value.lower()
+    if dml == 'update':
+        update.update(url, statement)
+    else:
+        dyn_query(url, statement)
+
+
 def transfer(url, statements):
     for statement in statements:
         if str(statement).upper() == 'BYE' or str(statement).upper() == 'EXIT':
@@ -32,7 +41,7 @@ def transfer(url, statements):
             from batch import batch_exec
             batch_exec(url,statement)
         elif isDML(statement):
-            dyn_query(url, statement)
+            execute_dml(url, statement)
         elif isDDL(statement):
             execute_ddl(url, statement)
         elif isKeyword(statement):
@@ -42,7 +51,6 @@ def transfer(url, statements):
         else:
             print Back.RED + 'The input statement "' + str(statement) + '" is not supported ...' + Back.RESET
         print
-
 
 
 class cli(cmd.Cmd):
