@@ -110,6 +110,11 @@ http://192.168.130.2/cloud/qa3/kmx/v2/data/data-points?select=%7B%22sources%22:%
 }
 ```
 
+Or, you can use SELECT * to query all sensors:
+```
+select * from device_id where ts='now'
+```
+
 Use 'bye' or 'exit' to quit kmx-cli
 ```
 > bye

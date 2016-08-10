@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import sqlparse
+
 from sqlparse.keywords import KEYWORDS
 from sqlparse import tokens
 from sqlparse.tokens import Keyword, Whitespace, Wildcard, Comparison, Literal, Number
 from sqlparse.sql import IdentifierList, Identifier, Where, TokenList
 from sqlparse.sql import Comparison as sqlcomp
-from colorama import Fore
 
 import arrow
 import re
@@ -157,6 +156,10 @@ def dyn_query(url, dml):
         log.error('Multi-devices query is not supported now ...')
         return
     sensors = get_columns(dml)
+    # Support wildcard * in select
+    if len(sensors) == 1 and sensors[0] == '*':
+        sensors = get_sensors_by_device(url, devices[0])
+
     predicate = get_where(dml)
     if not predicate:
         log.error('The select statement does NOT contain WHERE predicates, currently is not supported ...')
@@ -222,3 +225,14 @@ def get_page_size(sql):
                 size_idx += 1
             size = tokens[size_idx].value
     return page,size
+
+
+def get_sensors_by_device(url, deviceid):
+    uri = url + '/devices/' + deviceid
+    payload = get(uri).text
+    response = json.loads(payload)
+    sensors_list = response['device']['sensors']
+    sensor_ids = []
+    for sensor in sensors_list:
+        sensor_ids.append(sensor['id'])
+    return sensor_ids
