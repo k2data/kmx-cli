@@ -81,17 +81,17 @@ git clone https://github.com/k2data/kmx-cli.git -b dev
 The only thing you have to do is:
 Use URL of your HTTP RESTful query as parameter for kmx-cli.
 ```
-kmx_cli -u http://192.168.130.2/cloud/qa3/kmx/v2
+kmx -u http://192.168.130.2/cloud/qa3/kmx/v2
 ```
 or
 ```
-kmx_cli --url http://192.168.130.2/cloud/qa3/kmx/v2
+kmx --url http://192.168.130.2/cloud/qa3/kmx/v2
 ```
 Now you are ready to go.
 
 *Note: In Where predicate, there is only ONE keyword 'ts'. Timestamp, iso and relative time are all supported and can be mix used together.*
 ```
-$ kmx_cli -u http://192.168.130.2/cloud/qa3/kmx/v2
+$ kmx -u http://192.168.130.2/cloud/qa3/kmx/v2
 URL input is: http://192.168.130.2/cloud/qa3/kmx/v2
 KMX CLI is running ...
 > select sensor_name from device_name where ts=1469672032196

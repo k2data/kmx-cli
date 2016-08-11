@@ -23,7 +23,7 @@ setup(name="kmx_cli",
       ],
       entry_points={
           'console_scripts': [
-            'kmx_cli=kmx_cli.cli:run'
+            'kmx=kmx_cli.cli:run'
           ]
       }
       )
