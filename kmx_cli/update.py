@@ -3,7 +3,7 @@
 
 import json
 from sqlparse.tokens import Keyword, Comparison, Whitespace
-from sqlparse.sql import Identifier, IdentifierList, Where, Token, Parenthesis
+from sqlparse.sql import Identifier, IdentifierList, Where, Parenthesis
 from sqlparse.sql import Comparison as sqlComparison
 import log
 import request
@@ -22,32 +22,35 @@ def strip_quotes(value):
 def parse_where(token):
     # 判断是否是where
     if not isinstance(token, Where):
-        log.error("Syntax error: " + str(token) + '. expected where')
+        log.error("Syntax error: " + token.value + '. expected where')
         return
 
     # 判断where条件长度
     tokens = token.tokens
     if len(tokens) not in [3, 4]:
-        log.error("Syntax error: " + str(tokens))
+        log.error("Syntax error: " + token.value)
         return
 
     # 判断where条件
     comparisons = tokens[2].tokens
-    if len(comparisons) not in [3, 5]:
-        log.error("Syntax error: " + str(comparisons))
+    for parison in comparisons:
+        if hasattr(parison, 'ttype') and parison.ttype is Whitespace:
+            comparisons.remove(parison)
+
+    if len(comparisons) != 3:
+        log.error("Syntax error in where: " + token.value)
         return
 
-    if not comparisons[0].value.lower != 'id':
-        log.error("Syntax error: " + comparisons[0].value + '. expected <id>')
+    if comparisons[0].value.strip().lower != 'id':
+        log.error("Syntax error in where : " + comparisons[0].value + '. expected <id>')
         return
 
-    if comparisons[2].ttype is not Comparison or comparisons[2].value.strip() != '=':
-        log.error("Syntax error: " + comparisons[2].value + '. expected <=>')
+    if comparisons[1].ttype is not Comparison or comparisons[1].value.strip() != '=':
+        log.error("Syntax error in where : " + comparisons[1].value + '. expected <=>')
         return
 
     # 取出 = 后面的值，并去掉"或者'
-    condition = comparisons[4]
-    return strip_quotes(condition.value)
+    return strip_quotes(comparisons[2].value)
 
 
 def get_tags(parenthesis):
