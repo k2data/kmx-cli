@@ -1,9 +1,42 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 '''
-Usage:
-     e.g.
-     kmx_cli -u http://192.168.130.2/cloud/qa3/kmx/v2
+kmx -u http://192.168.130.2/cloud/qa3/kmx/v2
+>>>
+
+# create meta data
+>>>create deviceType device_type_name(sensor1 String,sensor2 Float) tags(t1,t2,标签) attributes(属性 属性值,k2 v2)
+>>>create device device_name(device_type_name) tags(t1,t2,标签) attributes(属性 属性值,k2 v2)
+
+# update meta data
+>>>update devicetype set tags =(x , xx , xxx), attributes = (k1 v1, "k2" v2) where id = "device_type_name"
+>>>update device set deviceTypeId=device_type_name ,tags =(x , xx , xxx), attributes = (k1 v1, "k2" v2) where id = "device_name"
+>>>drop {device|devicetype} idd
+
+# load dynamic data
+>>>import filepath/data.csv into device_type_name
+data.csv
+---------------------------------------------------------------
+device,iso,sensor1,sensor2,sensor3,sensor4,sensor5,sensor6
+device_name,iso,DOUBLE,BOOLEAN,INT,LONG,FLOAT,STRING
+device_name,2016-01-01T12:34:56.789+08:00,34.56789,false,3456789,1451622896789,34.56789,s34.56789
+device_name,2016-01-01T12:34:57.789+08:00,34.57789,true,3457789,1451622897789,34.57789,s34.57789
+---------------------------------------------------------------
+
+# query
+----------
+
+## query meta data
+
+>>>show {device|devicetype} idd
+>>>show {devices|devicetypes} like regex
+>>>show {devices|devicetypes} where key=value
+>>>show {devices|devicetypes}
+
+# query dynamic data
+>>>select sensor1,sensor2 from device_name where ts=1469672032196
+>>>select * from device_name where ts>'2016-07-28T10:13:52.196+08:00' and ts<'2016-07-28T10:13:52.644+08:00'
+
 '''
 import argparse
 import cmd
@@ -52,12 +85,15 @@ def transfer(url, statements):
         elif isIdentifier(statement) or isIdentifierList(statement):
             importor.run(url, statement)
         else:
-            error_message(str(statement))
+            error_message(None)
         print
 
 
 def error_message(line):
-    log.error('**unknown syntax:%s'%line)
+    if line:
+        log.error('** unknown syntax:%s **'%line)
+    else:
+        log.error('** syntax error: the statement is not supported **')
 
 class cli(cmd.Cmd):
     hostname = socket.gethostname();
@@ -86,6 +122,10 @@ class cli(cmd.Cmd):
             except AttributeError:
                 return self.default(line)
             return func(arg)
+
+    def do_help(self, arg):
+        cmd.Cmd.do_help(self, arg)
+        log.warn(__doc__)
 
     def default(self, line):
         self.kmxcmd(self.url, line)
@@ -125,9 +165,11 @@ class cli(cmd.Cmd):
         return True
 
     def do_bye(self, line):
+        ''' exit KMX CLI '''
         return self.exit(line)
 
     def do_exit(self, line):
+        ''' exit KMX CLI '''
         return self.exit(line)
 
     def do_shell(self, line):
@@ -143,11 +185,14 @@ class cli(cmd.Cmd):
         print 'New URL: ' + Back.GREEN + self.url + Back.RESET
 
     def kmxcmd(self, url, sql):
-        parsed = sqlparse.parse(sql)
-        transfer(self.url, parsed)
+        try:
+            parsed = sqlparse.parse(sql)
+            transfer(self.url, parsed)
+        except:
+            error_message(None)
 
 def run():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('-u', '--url', help='Input HTTP REST URL of your KMX query engine.')
     args = parser.parse_args()
     url = args.url

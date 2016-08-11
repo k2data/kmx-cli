@@ -26,9 +26,6 @@ def do_show(base_url, statement):
               show {devices|devicetypes} where key=value
     '''
     sql_tokens = statement.tokens
-    if len(sql_tokens) < 3:
-        from cli import error_message
-        return error_message('parameter is necessary.')
     key = sql_tokens[2].value.upper()
 
     # for show device|devicetype idd
@@ -54,8 +51,7 @@ def do_show(base_url, statement):
             where_tokens = key_next.tokens
             query_by_attrs('%s/%s'%(base_url, sub_url), where_tokens, main_key)
     else:
-        from cli import error_message
-        return error_message('wrong key %s'%sql_tokens[2].value)
+        raise Exception('Unknown key:%s'%key)
 
 
 def query_common(url, sub_url, idd, main_key, process_func):
@@ -63,8 +59,7 @@ def query_common(url, sub_url, idd, main_key, process_func):
                     show {devices|devicetypes}
     '''
     if not idd and process_func.__name__ == 'pretty_meta':
-        from cli import error_message
-        return error_message('Keyword is wrong or id is necessary')
+        raise Exception('Keyword is wrong or id is necessary')
     # query from k2db
     url = '/'.join((url, sub_url, idd))
     response = get(url)
@@ -89,8 +84,7 @@ def query_regex(url, sub_url, main_key, token_list, fmt='psql'):
             continue
         regex_match.append(token.value)
     if len(regex_match) == 1:
-        from cli import error_message
-        return error_message('words after "like" is necessary')
+        raise Exception('words after "like" is necessary')
     regex_match.append('$')
     regex_match = regex_trans(''.join(regex_match))
 
@@ -127,8 +121,7 @@ def query_by_attrs(base_url, where_tokens, main_key, fmt='psql'):
     if url_attrs:
         url = '%s?%s'%(base_url, '&'.join(url_attrs))
     else:
-        from cli import error_message
-        return error_message('where statement is wrong')
+        raise Exception('where statement is wrong')
     # query first page
     response = get('%s&order=asc-id&page=1'%(url))
     response_payload = json.loads(response.text)
@@ -161,9 +154,9 @@ def regex_trans(regex_str):
     ''' change the regexpress string of mysql to python format '''
     regex_new = regex_str.replace('"', '')
     regex_new = regex_new.replace("'", '')
-    regex_new = regex_new.replace('%', '.*')
-    regex_new = regex_new.replace('*', '.*')
-    regex_new = regex_new.replace('_', '.?')
+    regex_new = regex_new.replace('*', r'.*')
+    regex_new = regex_new.replace('%', r'.*')
+    regex_new = regex_new.replace('_', r'.?')
     return regex_new.strip()
 
 def filter_quote(str_value):
