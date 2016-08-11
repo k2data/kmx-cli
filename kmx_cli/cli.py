@@ -25,7 +25,6 @@ device_name,2016-01-01T12:34:57.789+08:00,34.57789,true,3457789,1451622897789,34
 
 # query
 ----------
-
 ## query meta data
 
 >>>show {device|devicetype} idd
@@ -33,9 +32,24 @@ device_name,2016-01-01T12:34:57.789+08:00,34.57789,true,3457789,1451622897789,34
 >>>show {devices|devicetypes} where key=value
 >>>show {devices|devicetypes}
 
-# query dynamic data
+## query dynamic data
+>>>select sensor_name from device_name where ts > 'now-1h' and ts < 'now'
+>>>select sensor_name from device_name where ts > 'now-1h'
+>>>select sensor_name from device_name where ts < 'now-1d'
+>>>select * from device_name
 >>>select sensor1,sensor2 from device_name where ts=1469672032196
 >>>select * from device_name where ts>'2016-07-28T10:13:52.196+08:00' and ts<'2016-07-28T10:13:52.644+08:00'
+
+# URL control
+url
+url http://192.168.130.2/cloud/qa1/kmx/v2
+
+# History
+history
+
+# Shell command
+!pwd
+!ls
 
 '''
 import argparse
@@ -181,8 +195,11 @@ class cli(cmd.Cmd):
         self.last_output = output
 
     def do_url(self, line):
-        self.url = line
-        print 'New URL: ' + Back.GREEN + self.url + Back.RESET
+        if line:
+            self.url = line
+            print 'New URL: ' + Back.GREEN + self.url + Back.RESET
+        else:
+            print 'Query URL:' + Back.GREEN + self.url + Back.RESET
 
     def kmxcmd(self, url, sql):
         try:
