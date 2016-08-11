@@ -11,16 +11,16 @@ import log
 def is_regist(url):
     response = get(url)
     status_code = response.status_code
-    log.info(' get: ' + url + '  ' + str(status_code) + ' ' + response.reason)
+    # log.info(' get: ' + url + '  ' + str(status_code) + ' ' + response.reason)
     return status_code == 200
 
 
 def regist(url, payload):
-    log.default('POST:\t' + url + '\n' + payload)
+    # log.default('POST:\t' + url + '\n' + payload)
     response = post(url, payload)
     status_code = response.status_code
 
-    log.default(response.reason + ' ' + str(response.status_code))
+    # log.default(response.reason + ' ' + str(response.status_code))
     # log.default(response.text)
     response.close()
     return status_code == 201
@@ -43,8 +43,8 @@ def wait_published(url, key='device'):
             response_payload = json.loads(response.text)
             status = response_payload[key]['status']
             response.close()
-            log.default(' get ' + str(counter) + ' times : ' + url + '  ' + str(status_code) + ' ' + response.reason + '\t' + status)
-    log.info(' get: ' + url + '  ' + str(status_code) + ' ' + response.reason + '\t' + status)
+            # log.default(' get ' + str(counter) + ' times : ' + url + '  ' + str(status_code) + ' ' + response.reason + '\t' + status)
+    # log.info(' get: ' + url + '  ' + str(status_code) + ' ' + response.reason + '\t' + status)
     return status == 'PUBLISHED'
 
 
@@ -133,7 +133,7 @@ def send_data(url, csv, sensors, types, method, time_format):
     success_writer.close()
     drop_writer.close()
     fail_writer.close()
-    log.primary('import report : total=%i  success=%i  fail=%i  drop=%i' % (total, success, fail, drop))
+    log.success('import report : total=%i  success=%i  fail=%i  drop=%i' % (total, success, fail, drop))
 
 
 def usage():
@@ -191,6 +191,7 @@ def parse_description(csv, path):
         device = items[0]
         time_format = items[1]
         types = items[2:]
+
     return sensors, device, time_str, time_format, types
 
 
@@ -207,13 +208,14 @@ def run(url, statement):
         csv.close()
         return
     sensors, device, time_mark, time_format, types = description
+    start_time = time.time()
 
     #  检查device-type 和 devices是否注册，没有则自动注册
     log.default(' check if deviceType:' + device_type + ' is registed and PUBLISHED')
     if not is_regist(url + '/device-types/' + device_type):
         log.primary(' deviceType：' + device_type + " doesn't be registered, will regist automatically")
         regist(url + '/device-types',device_type_payload(device_type, sensors, types))
-    success = wait_published(url + '/device-types/' + device_type,key='deviceType')
+    success = wait_published(url + '/device-types/' + device_type, key='deviceType')
 
     log.default(' check if device:' + device + ' is registed and PUBLISHED')
     if success and not is_regist(url + '/devices/' + device):
@@ -222,7 +224,7 @@ def run(url, statement):
     success = wait_published(url + '/devices/' + device)
 
     if success:
-        log.default('.....................start import ')
+        # log.default('.....................start import ')
         post_data_url = url + '/channels/devices/data'
 
         if time_mark.lower() == 'iso':
@@ -234,6 +236,6 @@ def run(url, statement):
 
         send_data(post_data_url, csv, sensors, types, method, time_format)
         csv.close()
-        log.default('.....................finished import')
     else:
         log.error(' deviceType:' + device_type + ' or device:' + device + ' can not be synchronized into system. Please check if KMX is running in normal state')
+    log.default('Finished in in %.3f s' % (time.time() - start_time))
