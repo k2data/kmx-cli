@@ -41,15 +41,15 @@ device_name,2016-01-01T12:34:57.789+08:00,34.57789,true,3457789,1451622897789,34
 >>>select * from device_name where ts>'2016-07-28T10:13:52.196+08:00' and ts<'2016-07-28T10:13:52.644+08:00'
 
 # URL control
-url
-url http://192.168.130.2/cloud/qa1/kmx/v2
+>>>url
+>>>url http://192.168.130.2/cloud/qa1/kmx/v2
 
 # History
-history
+>>>history
 
 # Shell command
-!pwd
-!ls
+>>>!pwd
+>>>!ls
 
 '''
 import argparse
@@ -200,6 +200,13 @@ class cli(cmd.Cmd):
             print 'New URL: ' + Back.GREEN + self.url + Back.RESET
         else:
             print 'Query URL:' + Back.GREEN + self.url + Back.RESET
+
+    def do_author(self, line):
+        authors = """
+        Yang Rui, Zheng Chunxi, Chang Xue, Li Zhenxing
+        @K2data
+        """
+        print authors
 
     def kmxcmd(self, url, sql):
         try:

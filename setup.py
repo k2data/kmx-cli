@@ -5,7 +5,7 @@ import setuptools
 from setuptools import setup
 
 setup(name="kmx_cli",
-      version='0.0.4',
+      version='0.1.0',
       packages=[
           'kmx_cli'
       ],
