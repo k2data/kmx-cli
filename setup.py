@@ -18,7 +18,8 @@ setup(name="kmx_cli",
           'sqlparse==0.2.0',
           'requests==2.7.0',
           'arrow==0.8.0',
-          'tabulate==0.7.5'
+          # 'tabulate==0.7.5',
+          'wcwidth==0.1.7'
       ],
       entry_points={
           'console_scripts': [
