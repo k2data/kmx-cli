@@ -51,5 +51,4 @@ sqls = [
 for sql in sqls:
     statements = sqlparse.parse(sql, 'utf-8')
     print 'execute :\t' + sql
-    for statement in statements:
-        cli.transfer('http://192.168.130.2/cloud/qa3/kmx/v2', statements)
+    cli.transfer('http://192.168.130.2/cloud/qa3/kmx/v2', statements)

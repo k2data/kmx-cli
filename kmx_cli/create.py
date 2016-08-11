@@ -109,4 +109,5 @@ def create(url, state_ment):
     else:
         log.warn(str(status_code) + ' ' + response.reason + '\n' + response.text + '\n')
     response.close()
+    return True
 
