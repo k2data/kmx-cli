@@ -12,14 +12,13 @@ def pretty_page(pages):
 def pretty_data_query(payload, format='psql'):
     ''' @author: Chang, Xue
         @param: query_result is a dict
-        @param: fmt may be 'plain', 'simple', 'grid', 'fancy_grid',
+        @param: fmt may be 'json', 'plain', 'simple', 'grid', 'fancy_grid',
                 'psql', 'pipe', 'orgtbl', 'rst', 'html' etc
                 detail see https://pypi.python.org/pypi/tabulate
         Note: 范围查询可能有重复数据， 单设备-传感器时间点查询只返回一行
     '''
     if format == 'json':
         print json.dumps(payload, sort_keys=True, indent=4)
-        print
         return
 
     result = []
@@ -84,7 +83,6 @@ def pretty_meta_list(payload, action, format='psql'):
     '''
     if format == 'json':
         print json.dumps(payload, sort_keys=True, indent=4)
-        print
         return
 
     results = []
@@ -113,7 +111,6 @@ def pretty_meta(payload, path, format='psql'):
     '''
     if format == 'json':
         print json.dumps(payload, sort_keys=True, indent=4)
-        print
         return
 
     result = []
@@ -140,6 +137,6 @@ def pretty_meta(payload, path, format='psql'):
             for key in keys:
                 row.append(sensor[key])
             sensor_rows.append(tuple(row))
-        print tabulate(sensor_rows, keys, tablefmt=format) + '\n'
+        print tabulate(sensor_rows, keys, tablefmt=format)
 
     print tabulate(result, headers, tablefmt=format)
