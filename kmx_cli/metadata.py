@@ -13,36 +13,6 @@ from request import get, post, delete
 charset = 'utf-8'
 
 
-def query_meta(url,statement):
-    tokens = statement.tokens
-    if len(tokens) < 3 or tokens[0].value.strip().lower() != 'show':
-        print Back.YELLOW + 'Please add table name in your sql. Table name show be in [devices ,device-type] ....' + Back.RESET
-        return
-
-    params = tokens[2].value.strip().split(' ')
-    path = params[0].lower()
-
-    if path != 'devices' and path != 'device-types':
-        print ' Usage : show table_name [id] .   '
-        print 'Table name show be in [ devices , device-type ] ....'
-        return
-    id = ''
-    if len(params) > 1 :
-        id = params[1]
-
-    uri = url + '/' + path + '/' + id
-    response = get(uri)
-    resopnse_payload = json.loads(response.text)
-
-    if len(params) > 1 :
-        path = path[:-1]
-        if '-' in path:
-            path = 'deviceType'
-        pretty_meta(resopnse_payload, path)
-    else:
-        pretty_meta_list(resopnse_payload, path)
-
-
 def parse_attr(payload, tokens):
     length = len(tokens) + 1;
     if length > 4:

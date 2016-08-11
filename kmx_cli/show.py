@@ -3,9 +3,11 @@
 '''
 @author: Chang, Xue
 Usage:
-show {device|device-type} idd
-show {devices|device-types} like regex
-show {devices} where device-type=idd
+show {device|devicetype} idd
+show {devices|devicetypes} like regex
+show {devices|devicetypes} where key=value
+
+Note: wildcards of regex are *, %, _
 '''
 
 from colorama import Back
@@ -19,11 +21,14 @@ import identify
 charset = 'utf-8'
 
 def do_show(base_url, statement):
-    ''' Usage:show {device|device-type} idd
-              show {devices|device-types} like regex
-              show {devices} where device-type=idd
+    ''' Usage:show {device|devicetype} idd
+              show {devices|devicetypes} like regex
+              show {devices|devicetypes} where key=value
     '''
     sql_tokens = statement.tokens
+    if len(sql_tokens) < 3:
+        from cli import error_message
+        return error_message('parameter is necessary.')
     key = sql_tokens[2].value.upper()
 
     # for show device|devicetype idd
@@ -48,6 +53,10 @@ def do_show(base_url, statement):
         elif identify.isWhere(key_next):
             where_tokens = key_next.tokens
             query_by_attrs('%s/%s'%(base_url, sub_url), where_tokens, main_key)
+    else:
+        from cli import error_message
+        return error_message('wrong key %s'%sql_tokens[2].value)
+
 
 def query_common(url, sub_url, idd, main_key, process_func):
     ''' to support: show {device|devicetype} xxx
@@ -79,6 +88,9 @@ def query_regex(url, sub_url, main_key, token_list, fmt='psql'):
         if identify.canIgnore(token):
             continue
         regex_match.append(token.value)
+    if len(regex_match) == 1:
+        from cli import error_message
+        return error_message('words after "like" is necessary')
     regex_match.append('$')
     regex_match = regex_trans(''.join(regex_match))
 

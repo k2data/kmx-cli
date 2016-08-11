@@ -16,7 +16,7 @@ import importor
 import create
 import update
 from identify import isDDL, isDML, isKeyword, isIdentifier, isIdentifierList
-from metadata import query_meta, ddl_operations
+from metadata import ddl_operations
 from query import dyn_query
 import show
 import log
@@ -40,10 +40,7 @@ def execute_dml(url, statement):
 
 def transfer(url, statements):
     for statement in statements:
-        if str(statement).upper() in ['BYE', 'EXIT', 'QUIT']:
-            print 'Exit KMX CLI ...'
-            return 'stop'
-        elif str(statement).lstrip().strip().upper().startswith('SOURCE'):
+        if str(statement).lstrip().strip().upper().startswith('SOURCE'):
             from batch import batch_exec
             batch_exec(url,statement)
         elif isDML(statement):
@@ -62,11 +59,33 @@ def transfer(url, statements):
 def error_message(line):
     log.error('**unknown syntax:%s'%line)
 
-
 class cli(cmd.Cmd):
     hostname = socket.gethostname();
     ip = socket.gethostbyname(hostname);
     prompt = '[' + hostname + '@' + ip + '] > '
+
+    def onecmd(self, line):
+        """
+        Override:
+        just modify this statement:
+        func = getattr(self, 'do_' + cmd)
+        """
+        cmd, arg, line = self.parseline(line)
+        if not line:
+            return self.emptyline()
+        if cmd is None:
+            return self.default(line)
+        self.lastcmd = line
+        if line == 'EOF' :
+            self.lastcmd = ''
+        if cmd == '':
+            return self.default(line)
+        else:
+            try:
+                func = getattr(self, 'do_' + cmd.lower())
+            except AttributeError:
+                return self.default(line)
+            return func(arg)
 
     def default(self, line):
         self.kmxcmd(self.url, line)
@@ -100,11 +119,16 @@ class cli(cmd.Cmd):
         for cmdline in self._hist:
             print cmdline
 
-    def do_bye(self, line):
+    def exit(self, line):
+        log.primary('Exit KMX CLI...')
+        log.primary('Bye!')
         return True
 
+    def do_bye(self, line):
+        return self.exit(line)
+
     def do_exit(self, line):
-        return True
+        return self.exit(line)
 
     def do_shell(self, line):
         "Run a shell command"
@@ -121,7 +145,6 @@ class cli(cmd.Cmd):
     def kmxcmd(self, url, sql):
         parsed = sqlparse.parse(sql)
         transfer(self.url, parsed)
-
 
 def run():
     parser = argparse.ArgumentParser()
