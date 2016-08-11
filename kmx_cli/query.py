@@ -98,16 +98,15 @@ def relative_time_parser(relativeStr, format):
 
 
 def get_where(sql):
+    pointQueryValue = {}
+    pointQuery = {"sampleTime": pointQueryValue}
+    rangeQueryStart = {}
+    rangeQueryEnd = {}
+    rangeQuery = {"timeRange": {"start": rangeQueryStart, "end": rangeQueryEnd}}
+
     tokens = sql.tokens
     for token in tokens:
         if isinstance(token, Where):
-            pointQueryValue = {}
-            pointQuery = {"sampleTime": pointQueryValue}
-
-            rangeQueryStart = {}
-            rangeQueryEnd = {}
-            rangeQuery = {"timeRange": {"start": rangeQueryStart, "end": rangeQueryEnd}}
-
             whereToekns = token.tokens
 
             for token in whereToekns:
@@ -141,10 +140,19 @@ def get_where(sql):
                         rangeQueryEnd.update({id: value})
 
 
-            if pointQueryValue:
-                return pointQuery
-            if rangeQueryStart:
-                return rangeQuery
+    if pointQueryValue:
+        return pointQuery
+    elif rangeQueryStart:
+        if not rangeQueryEnd:
+            rangeQueryEnd.update({'iso': arrow.now().format('YYYY-MM-DDTHH:mm:ss.SSSZZ').replace("+","%2B")})
+        return rangeQuery
+    elif rangeQueryEnd:
+        rangeQueryStart.update({'iso': arrow.get('1970-01-01T00:00:00.001Z').format('YYYY-MM-DDTHH:mm:ss.SSSZZ').replace("+","%2B")})
+        return rangeQuery
+    else:
+        rangeQueryStart.update({'iso': arrow.get('1970-01-01T00:00:00.001Z').format('YYYY-MM-DDTHH:mm:ss.SSSZZ').replace("+","%2B")})
+        rangeQueryEnd.update({'iso': arrow.now().format('YYYY-MM-DDTHH:mm:ss.SSSZZ').replace("+","%2B")})
+        return rangeQuery
 
 
 def dyn_query(url, dml):
@@ -161,9 +169,9 @@ def dyn_query(url, dml):
         sensors = get_sensors_by_device(url, devices[0])
 
     predicate = get_where(dml)
-    if not predicate:
-        log.error('The select statement does NOT contain WHERE predicates, currently is not supported ...')
-        return None
+    # if not predicate:
+    #     log.error('The select statement does NOT contain WHERE predicates, currently is not supported ...')
+    #     return None
     query_url = 'data-points'
     if predicate.has_key('sampleTime'):
         key = 'sampleTime'
