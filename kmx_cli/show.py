@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 '''
 @author: Chang, Xue
-Usage:
+Support:
 show {device|devicetype} idd
+show {devices|devicetypes} [page digit] [size digit]
 show {devices|devicetypes} like regex
 show {devices|devicetypes} where key=value
 
@@ -21,18 +22,18 @@ import identify
 charset = 'utf-8'
 
 def do_show(base_url, statement):
-    ''' Usage:show {device|devicetype} idd
-              show {devices|devicetypes} like regex
-              show {devices|devicetypes} where key=value
+    '''
+    The main method of this module
     '''
     sql_tokens = statement.tokens
-    key = sql_tokens[2].value.upper()
+    key = sql_tokens[2].value
 
     # for show device|devicetype idd
     idd = ''
     if ' ' in key:
         key, idd = key.split()
 
+    key = key.upper()
     if key == 'DEVICE':
         query_common(base_url, 'devices', idd, 'device', pretty_meta)
     elif key == 'DEVICETYPE':
@@ -41,7 +42,7 @@ def do_show(base_url, statement):
         sub_url = get_suburl(key)
         main_key = get_main_key(key) # the json key of response
         if len(sql_tokens) < 5 or identify.canIgnore(sql_tokens[4]):
-            # for show devices|devicetypes
+            # for show {devices|devicetypes} [page digit] [size digit]
             query_common(base_url, sub_url, '', main_key, pretty_meta_list)
             return
         key_next = sql_tokens[4]
@@ -50,22 +51,46 @@ def do_show(base_url, statement):
         elif identify.isWhere(key_next):
             where_tokens = key_next.tokens
             query_by_attrs('%s/%s'%(base_url, sub_url), where_tokens, main_key)
+        else:
+            from query import get_page_size
+            page, size = get_page_size(statement)
+            query_common(base_url, sub_url, '', main_key, pretty_meta_list, page, size)
     else:
         raise Exception('Unknown key:%s'%key)
 
 
-def query_common(url, sub_url, idd, main_key, process_func):
+def query_common(url, sub_url, idd, main_key, process_func, page=None, size=None):
     ''' to support: show {device|devicetype} xxx
-                    show {devices|devicetypes}
+                    show {devices|devicetypes} [page digit] [size digit]
     '''
     if not idd and process_func.__name__ == 'pretty_meta':
         raise Exception('Keyword is wrong or id is necessary')
     # query from k2db
-    url = '/'.join((url, sub_url, idd))
+    if idd:
+        url = '/'.join((url, sub_url, idd))
+    else:
+        url = '%s/%s?order=asc-id'%(url, sub_url)
+        if page: url = '%s&page=%s'%(url, page)
+        if size: url = '%s&size=%s'%(url, size)
     response = get(url)
     resopnse_payload = json.loads(response.text)
     # output as text table
     process_func(resopnse_payload, main_key)
+
+def make_re_replace_func(regex_patt=r'[\'"*%_]{1}'):
+    ''' form a function to do my replacement '''
+    p= re.compile(regex_patt)
+    replace_vs = {'_':'.?', '*':'.*', '%':'.*', '"':'', "'":''}
+    def _replace_each(matched):
+        wildcard = matched.group()
+        return replace_vs[wildcard]
+    def _replace(text):
+        return p.sub(_replace_each, text)
+    return _replace
+
+filter_quote = make_re_replace_func(r'[\'"]{1}')
+# replace '*','%' with '.*' and replace '_' with '.?', filter quote
+regex_trans = make_re_replace_func()
 
 def query_regex(url, sub_url, main_key, token_list, fmt='psql'):
     '''to support: show {devices|devicetypes} like xxx
@@ -81,7 +106,7 @@ def query_regex(url, sub_url, main_key, token_list, fmt='psql'):
     regex_match = ['^']
     for token in token_list:
         if identify.canIgnore(token):
-            continue
+            break
         regex_match.append(token.value)
     if len(regex_match) == 1:
         raise Exception('words after "like" is necessary')
@@ -109,7 +134,9 @@ def query_by_attrs(base_url, where_tokens, main_key, fmt='psql'):
     # form url
     url_attrs = []
     # parse where statement into key=value sting
-    for comp_exp in where_tokens[2:]:
+    index = 2
+    while index < len(where_tokens):
+        comp_exp = where_tokens[index]
         if identify.isComparison(comp_exp):
             key, value = comp_exp.value.split('=')
             key = filter_quote(key)
@@ -117,6 +144,11 @@ def query_by_attrs(base_url, where_tokens, main_key, fmt='psql'):
                 key = 'deviceTypeId'
             value = filter_quote(value)
             url_attrs.append('%s=%s'%(key, value))
+        elif identify.canIgnore(comp_exp):
+            pass
+        else:
+            raise Exception('format: where key="value"')
+        index += 1
     # form url string
     if url_attrs:
         url = '%s?%s'%(base_url, '&'.join(url_attrs))
@@ -149,20 +181,6 @@ def get_suburl(value):
         return 'device-types'
     else:
         return value.lower()
-
-def regex_trans(regex_str):
-    ''' change the regexpress string of mysql to python format '''
-    regex_new = regex_str.replace('"', '')
-    regex_new = regex_new.replace("'", '')
-    regex_new = regex_new.replace('*', r'.*')
-    regex_new = regex_new.replace('%', r'.*')
-    regex_new = regex_new.replace('_', r'.?')
-    return regex_new.strip()
-
-def filter_quote(str_value):
-    str_value = str_value.replace('"', '')
-    str_value = str_value.replace("'", '')
-    return str_value.strip()
 
 def filter_result(result_dict, main_key, is_match, result=[]):
     body = result_dict[main_key]

@@ -56,7 +56,7 @@ def isIdentifierList(statement):
     return identify(statement, 'IdentifierList')
 
 def isWhere(statement):
-    ''' @author: Chang,Xue '''
+    ''' @author: Chang, Xue '''
     return isinstance(statement, Where)
 
 def canIgnore(statement):
@@ -114,7 +114,7 @@ def find_next_token_by_ttype(sql, lambda_func, target_ttype):
 
 if __name__ == '__main__':
     import sqlparse
-    statements = sqlparse.parse('import data.csv into test_deviceType;select * from devices;create devices id(deviceTypeId) tags(t1,t2) attributes(k1 v1,k2 v2);show devices;testdcz; dafs a')
+    '''    statements = sqlparse.parse('import data.csv into test_deviceType;select * from devices;create devices id(deviceTypeId) tags(t1,t2) attributes(k1 v1,k2 v2);show devices;testdcz; dafs a')
     for statement in statements:
         print '"' + str(statement.tokens[0]) + '" isDML : ' + str(isDML(statement))
         print '"' + str(statement.tokens[0]) + '" isDDL : ' + str(isDDL(statement))
@@ -122,3 +122,12 @@ if __name__ == '__main__':
         print '"' + str(statement.tokens[0]) + '" isIdentifier : ' + str(isIdentifier(statement))
         print '"' + str(statement.tokens[0]) + '" isIdentifierList : ' + str(isIdentifierList(statement))
         print
+    '''
+    s='''where key1=value1 and key2 = value2 and key3="value3" and "key4"=value4 and "key5" = "value5";'''
+    st = sqlparse.parse(s)[0]
+    print st.tokens
+    print
+    sss = reformat_tokens(st)
+    print sss
+    for index in xrange(1, len(sss), 3):
+        print index, sss[index]
