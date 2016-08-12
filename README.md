@@ -230,7 +230,7 @@ d1,2016-01-01T12:34:56.789+08:00,34.56789,false,3456789,1451622896789,34.56789,s
 d1,2016-01-01T12:34:57.789+08:00,34.57789,true,3457789,1451622897789,34.57789,s34.57789
 ```
 ##### csv file format :
-1. the first and second are description of csv data file and it must be writed correctly
+1. the first and second are the descriptions of csv file and it must be written correctly
 2. the first line should be like 'device,${time},sensor1,sensor2......'
 3. the second line should be like '${deviceId},${time_format},valueType1,,valueType2......'
 4. if ${time} is 'iso' or 'timestamp', ${time_format} in second line will be igored. Otherwise ${time_format} in second should match real format of the time from the third line
