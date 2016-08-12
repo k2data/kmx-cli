@@ -14,7 +14,7 @@ kmx -u http://192.168.130.2/cloud/qa3/kmx/v2
 >>>drop {device|devicetype} idd
 
 # load dynamic data
->>>import filepath/data.csv into device_type_name
+>>>import 'filepath/data.csv' into device_type_name
 data.csv
 ---------------------------------------------------------------
 device,iso,sensor1,sensor2,sensor3,sensor4,sensor5,sensor6
@@ -26,11 +26,25 @@ device_name,2016-01-01T12:34:57.789+08:00,34.57789,true,3457789,1451622897789,34
 # query
 ----------
 ## query meta data
+Usage:
+show {device|devicetype} idd
+show {devices|devicetypes} like pattern
+show {devices|devicetypes} where key=value
+show {devices|devicetypes} [page x] [size x]
 
->>>show {device|devicetype} idd
->>>show {devices|devicetypes} like regex
->>>show {devices|devicetypes} where key=value
->>>show {devices|devicetypes}
+Note:
+'*', '%' and '_' are supported as wildcards in pattern
+wildcard: '*' match 0 ~ * characters
+wildcard: '%' match 0 ~ * characters
+wildcard: '_' match 0 ~ 1 character
+
+String must be quoted if chinese or other special characters in it.
+
+>>>show devices
+>>>show devices page 1 size 10
+>>>show devices like *gw%
+>>>show devices where devicetype=device_type_name
+>>>show devicetypes where tag='标签'
 
 ## query dynamic data
 >>>select sensor_name from device_name where ts > 'now-1h' and ts < 'now'
@@ -120,16 +134,17 @@ class cli(cmd.Cmd):
         just modify this statement:
         func = getattr(self, 'do_' + cmd)
         """
+        line = line.strip()
         cmd, arg, line = self.parseline(line)
         if not line:
             return self.emptyline()
         if cmd is None:
-            return self.default(line)
+            return error_message(None)
         self.lastcmd = line
         if line == 'EOF' :
             self.lastcmd = ''
         if cmd == '':
-            return self.default(line)
+            return error_message(None)
         else:
             try:
                 func = getattr(self, 'do_' + cmd.lower())
@@ -210,10 +225,10 @@ class cli(cmd.Cmd):
 
     def kmxcmd(self, url, sql):
         try:
-            parsed = sqlparse.parse(sql)
+            parsed = sqlparse.parse(sql, 'utf-8')
             transfer(self.url, parsed)
-        except:
-            error_message(None)
+        except Exception as e:
+            error_message(e)
 
 def run():
     parser = argparse.ArgumentParser(description=__doc__)

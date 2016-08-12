@@ -9,7 +9,13 @@ import log
 def pretty_page(pages):
     print 'total:%d    size:%d    pageNum:%d    pages:%d    pageSize:%d\n' % (pages['total'],pages['size'],pages['pageNum'],pages['pages'],pages['pageSize'])
 
-def pretty_data_query(payload, format='psql'):
+def draw_table(rows, headers, fmt='psql'):
+    if not rows:
+        print 'return 0 record.'
+    else:
+        print tabulate(rows, headers, tablefmt=fmt)
+
+def pretty_data_query(payload, fmt='psql'):
     ''' @author: Chang, Xue
         @param: query_result is a dict
         @param: fmt may be 'json', 'plain', 'simple', 'grid', 'fancy_grid',
@@ -51,8 +57,7 @@ def pretty_data_query(payload, format='psql'):
             for key in headers:
                 row.append(result_dict.get(key, '')) #如果该行没有该sensor补空
             result.append(row)
-        if result:
-            print tabulate(result, headers, tablefmt=format)
+        draw_table(result, headers, fmt)
     elif 'dataPoints' in payload.keys(): #单设备-传感器时间点查询
         keys = payload['dataPoints'][0].keys()
         ts_key = 'iso' if 'iso' in keys else 'timestamp'
@@ -65,8 +70,7 @@ def pretty_data_query(payload, format='psql'):
             headers.append(sensor)
             row.append(rec.get('value', non_exist))
         result.append(row)
-        if result:
-            print tabulate(result, headers, tablefmt=format)
+        draw_table(result, headers, fmt)
 
     if 'pageInfo' in payload:
         pages = payload['pageInfo']
@@ -77,7 +81,7 @@ def pretty_data_query(payload, format='psql'):
         log.error(payload['message'])
     return payload['code']
 
-def pretty_meta_list(payload, action, format='psql'):
+def pretty_meta_list(payload, action, fmt='psql'):
     ''' query all devices or device-types
         @action: devices, deviceTypes
     '''
@@ -94,18 +98,17 @@ def pretty_meta_list(payload, action, format='psql'):
         headers = ['id','url']
         for data in lists:
             results.append((data['id'], data['url']))
-        print tabulate(results, headers, tablefmt=format)
     else:
         headers = ['id','deviceTypeId','url','deviceTypeUrl']
         for data in lists:
             results.append((data['id'], data['deviceType']['id'], data['url'], data['deviceType']['url']))
-        print tabulate(results, headers, tablefmt=format)
+    draw_table(results, headers, fmt)
 
     pages = payload['pageInfo']
-    if pages:
+    if pages and pages['total'] != 0:
         pretty_page(pages)
 
-def pretty_meta(payload, path, format='psql'):
+def pretty_meta(payload, path, fmt='psql'):
     ''' query single device or device-types
         @path: deviceType, device
     '''
@@ -137,6 +140,6 @@ def pretty_meta(payload, path, format='psql'):
             for key in keys:
                 row.append(sensor[key])
             sensor_rows.append(tuple(row))
-        print tabulate(sensor_rows, keys, tablefmt=format)
+        draw_table(sensor_rows, keys, fmt)
 
-    print tabulate(result, headers, tablefmt=format)
+    draw_table(result, headers, fmt)
