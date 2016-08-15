@@ -187,6 +187,7 @@ def dyn_query(url, dml):
     #     log.error('The select statement does NOT contain WHERE predicates, currently is not supported ...')
     #     return None
     query_url = 'data-points'
+    is_statistic = False
     if predicate.has_key('sampleTime'):
         key = 'sampleTime'
         value = predicate['sampleTime']
