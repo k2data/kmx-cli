@@ -3,8 +3,8 @@
 import pandas
 import numpy
 import pylab
-import json
 from request import get
+import log
 
 numpy.seterr(divide='ignore',invalid='ignore')
 
@@ -15,7 +15,8 @@ def parse_payload(payload, sensors):
     for sensor in sensors:
         values[sensor] = []
 
-    data_rows = json.loads(payload)['dataRows']
+
+    data_rows = payload['dataRows']
     for data_row in data_rows:
         if data_row.has_key('iso'):
             index.append(data_row['iso'])
@@ -47,7 +48,7 @@ def get_data_frame_data(payload, sensors):
 
 def describe(payload, sensors):
     data_frame = get_data_frame_data(payload, sensors)
-    print data_frame.describe()
+    log.default(data_frame.describe())
 
 
 def plot(payload, sensors):
@@ -63,14 +64,26 @@ def box(payload, sensors):
     pylab.show()
 
 
+def execute(payload, sensors, function):
+    if function == 'describe':
+        describe(payload, sensors)
+    elif function == 'line':
+        plot(payload, sensors)
+    elif function == 'box':
+        box(payload, sensors)
+    else:
+        log.error("do not support :" + function)
+
+
 if __name__ == '__main__':
     url = 'http://192.168.130.2/cloud/qa3/kmx/v2/data/data-rows?' +\
           'select={"sources":{"device":"C302D0_10",' + \
           '"sensors":["engineTemperature","xx","enginRotate"],' + \
           '"timeRange":{"start":{"iso":"1970-01-01T00:00:00.001-00:00"},"end":{"iso":"2016-08-15T09:44:55.687%2B08:00"}}}}' + \
           '&size=5'
+    import json
     response = get(url)
-    response_payload = response.text
+    response_payload = json.loads(response.text)
     response.close()
     sensor_ids = ["engineTemperature", "xx", "enginRotate"]
 

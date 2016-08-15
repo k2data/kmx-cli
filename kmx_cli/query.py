@@ -3,8 +3,8 @@
 
 from sqlparse.keywords import KEYWORDS
 from sqlparse import tokens
-from sqlparse.tokens import Keyword, Whitespace, Wildcard, Comparison, Literal, Number
-from sqlparse.sql import IdentifierList, Identifier, Where, TokenList
+from sqlparse.tokens import Keyword, Whitespace, Wildcard, Comparison, Literal
+from sqlparse.sql import IdentifierList, Identifier, Where, TokenList, Function
 from sqlparse.sql import Comparison as sqlcomp
 
 import arrow
@@ -12,8 +12,10 @@ import re
 import copy
 import json
 import timeit
+import identify
 
 from request import get
+import statistic
 from pretty import pretty_data_query
 import log
 
@@ -25,33 +27,45 @@ KEYWORDS['PAGE'] = tokens.Keyword
 
 
 def get_column_tables(sql):
-        ids = []
-        for token in sql.tokens:
-            if isinstance(token, IdentifierList):
-                for identifier in token.get_identifiers():
-                    ids.append(identifier.get_name())
-            elif isinstance(token, Identifier):
-                ids.append(token.value)
-            elif token.ttype is Keyword and token.value.upper() == 'FROM':
-                ids.append(token.value)
-            elif token.ttype is Wildcard:
-                ids.append(token.value)
-        return ids
+    ids = []
+    for token in sql.tokens:
+        if isinstance(token, IdentifierList):
+            for identifier in token.get_identifiers():
+                ids.append(identifier.get_name())
+        elif isinstance(token, Identifier):
+            ids.append(token.value)
+        elif token.ttype is Keyword and token.value.upper() == 'FROM':
+            ids.append(token.value)
+        elif token.ttype is Wildcard:
+            ids.append(token.value)
+    return ids
 
 
-def get_columns(sql):
-    ids = get_column_tables(sql)
-    columns = []
-    for id in ids:
-        if id.upper() == 'FROM':
-            break
-        columns.append(id)
-    return columns
+def get_sensors(sql):
+    # ids = get_column_tables(sql)
+    # columns = []
+    # for id in ids:
+    #     if id.upper() == 'FROM':
+    #         break
+    #     columns.append(id)
+    # return columns
+    function = None
+    sensors = []
+    condition = identify.trip_tokens(sql.tokens)[1]
+    is_function = isinstance(condition, Function)
+    if is_function:
+        tokens = identify.trip_tokens(condition.tokens)
+        function = tokens[0].value.lower()
+        values = identify.trip_tokens(tokens[1].tokens)[1].value.split(',')
+    else:
+        values = condition.value.split(',')
+    for value in values:
+        sensors.append(value.strip())
+    return is_function, sensors, function
 
 
 def get_tables(sql):
     ids = get_column_tables(sql)
-    columns = get_columns(sql)
     tables = copy.deepcopy(ids)
     for id in ids:
         if id.upper() <> 'FROM':
@@ -163,7 +177,7 @@ def dyn_query(url, dml):
     if len(devices) > 1:
         log.error('Multi-devices query is not supported now ...')
         return
-    sensors = get_columns(dml)
+    is_function, sensors, function = get_sensors(dml)
     # Support wildcard * in select
     if len(sensors) == 1 and sensors[0] == '*':
         sensors = get_sensors_by_device(url, devices[0])
@@ -180,6 +194,7 @@ def dyn_query(url, dml):
         key = 'timeRange'
         value = predicate['timeRange']
         query_url = 'data-rows'
+        is_statistic = True
     else:
         log.error('The query is not supported now ...')
 
@@ -203,15 +218,23 @@ def dyn_query(url, dml):
     print
     start_time = timeit.default_timer()
     response = get(uri)
+    response.close()
     elapsed = timeit.default_timer() - start_time
     rc = response.status_code
     if rc != 200:
         log.error('Code: ' + str(rc))
         log.error(response.text)
     else:
-        pretty_data_query(json.loads(response.text))
+        payload = json.loads(response.text)
+        pretty_data_query(payload)
         log.default('Returned in %.2f s' % elapsed)
-    response.close()
+
+        if is_function:
+            if is_statistic:
+                print
+                statistic.execute(payload, sensors, function)
+            else:
+                log.error("data point query does not suppurt statistic")
 
 
 def get_page_size(sql):
@@ -232,7 +255,7 @@ def get_page_size(sql):
             while tokens[size_idx].ttype is not Literal.Number.Integer:
                 size_idx += 1
             size = tokens[size_idx].value
-    return page,size
+    return page, size
 
 
 def get_sensors_by_device(url, deviceid):
@@ -244,3 +267,10 @@ def get_sensors_by_device(url, deviceid):
     for sensor in sensors_list:
         sensor_ids.append(sensor['id'])
     return sensor_ids
+
+
+if __name__ == '__main__':
+    import sqlparse
+    statements = sqlparse.parsestream('select descs(s1 ,s2) from device where ts > 1;select s1 ,s2 from device where ts > 1', 'utf-8')
+    for statement in statements:
+        print get_sensors(statement)
