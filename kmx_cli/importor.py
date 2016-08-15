@@ -45,7 +45,7 @@ def wait_published(url, key='device'):
             response.close()
             # log.default(' get ' + str(counter) + ' times : ' + url + '  ' + str(status_code) + ' ' + response.reason + '\t' + status)
     # log.info(' get: ' + url + '  ' + str(status_code) + ' ' + response.reason + '\t' + status)
-    return status == 'PUBLISHED'
+    return status == 'PUBLISHED',response_payload
 
 
 def device_payload(device, device_type_id):
@@ -215,13 +215,18 @@ def run(url, statement):
     if not is_regist(url + '/device-types/' + device_type):
         log.primary(' deviceType：' + device_type + " doesn't be registered, will regist automatically")
         regist(url + '/device-types',device_type_payload(device_type, sensors, types))
-    success = wait_published(url + '/device-types/' + device_type, key='deviceType')
+    success, payload = wait_published(url + '/device-types/' + device_type, key='deviceType')
 
     log.default(' check if device:' + device + ' is registed and PUBLISHED')
     if success and not is_regist(url + '/devices/' + device):
         log.primary(' device：' + device + " doesn't be registered, will regist automatically")
         regist(url + '/devices',device_payload(device, device_type))
-    success = wait_published(url + '/devices/' + device)
+    success, payload = wait_published(url + '/devices/' + device)
+
+    if payload['deviceTypeId'] != device_type:
+        log.warn('device:' + device + ' is related to deviceType:' + payload['deviceTypeId'] + ',which not matched ' + device_type)
+        csv.close()
+        return
 
     if success:
         # log.default('.....................start import ')
