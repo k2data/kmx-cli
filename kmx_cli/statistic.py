@@ -6,6 +6,8 @@ import pylab
 import json
 from request import get
 
+numpy.seterr(divide='ignore',invalid='ignore')
+
 
 def parse_payload(payload, sensors):
     index = []
@@ -15,14 +17,17 @@ def parse_payload(payload, sensors):
 
     data_rows = json.loads(payload)['dataRows']
     for data_row in data_rows:
-        index.append(data_row['iso'])
+        if data_row.has_key('iso'):
+            index.append(data_row['iso'])
+        else:
+            index.append(data_row['timestamp'])
         data_points = data_row['dataPoints']
         for data_point in data_points:
             sensor = data_point['sensor']
             if data_point.has_key('value') and data_point['value'] != 'null':
                 values[sensor].append(data_point['value'])
             else:
-                values[sensor].append(None)
+                values[sensor].append(float("+inf"))
     return index, values
 
 
@@ -61,13 +66,13 @@ def box(payload, sensors):
 if __name__ == '__main__':
     url = 'http://192.168.130.2/cloud/qa3/kmx/v2/data/data-rows?' +\
           'select={"sources":{"device":"C302D0_10",' + \
-          '"sensors":["engineTemperature","enginRotate"],' + \
+          '"sensors":["engineTemperature","xx","enginRotate"],' + \
           '"timeRange":{"start":{"iso":"1970-01-01T00:00:00.001-00:00"},"end":{"iso":"2016-08-15T09:44:55.687%2B08:00"}}}}' + \
           '&size=5'
     response = get(url)
     response_payload = response.text
     response.close()
-    sensor_ids = ["engineTemperature", "enginRotate"]
+    sensor_ids = ["engineTemperature", "xx", "enginRotate"]
 
     describe(response_payload, sensor_ids)
     plot(response_payload, sensor_ids)
