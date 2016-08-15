@@ -2,10 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import copy
-
-from colorama import Back
 from sqlparse.sql import Identifier, IdentifierList, TokenList, Token, Where, Comparison
-from sqlparse.tokens import DML, DDL, Keyword
+from sqlparse.tokens import DML, DDL, Keyword, Whitespace
 import log
 
 default_identifiers = ['show', 'create', 'select', 'drop', 'update']
@@ -74,6 +72,13 @@ def isComparison(statement):
     '''@author: Chang,Xue
        match Wildcard '''
     return isinstance(statement, Comparison)
+
+
+def trip_tokens(tokens):
+    for token in tokens:
+        if hasattr(token, 'ttype') and token.ttype is Whitespace:
+            tokens.remove(token)
+    return tokens
 
 
 def find_next_token_by_ttype(sql, lambda_func, target_ttype):
