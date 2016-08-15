@@ -198,6 +198,7 @@ def parse_description(csv, path):
 def run(url, statement):
     items = parse_sql(statement)
     if not items or len(items) < 2:
+        log.warn('import skipped')
         return
 
     path, device_type = items
@@ -206,6 +207,7 @@ def run(url, statement):
     description = parse_description(csv, path)
     if not description or len(description) < 2:
         csv.close()
+        log.warn('import skipped')
         return
     sensors, device, time_mark, time_format, types = description
     start_time = time.time()
@@ -224,12 +226,13 @@ def run(url, statement):
         success, payload = wait_published(url + '/devices/' + device)
         if payload and payload['device']['deviceTypeId'] != device_type:
             log.warn('device:' + device + ' is related to deviceType:' + payload['device']['deviceTypeId'] + ',which not matched ' + device_type)
+            log.warn('import skipped')
         csv.close()
         return
 
     if regist_device_type:
         log.info('regist deviceType:' + device_type + ' automatically')
-        regist(url + '/device-types',device_type_payload(device_type, sensors, types))
+        regist(url + '/device-types', device_type_payload(device_type, sensors, types))
         success, payload = wait_published(url + '/device-types/' + device_type, key='deviceType')
 
     if regist_device:
@@ -249,6 +252,7 @@ def run(url, statement):
 
         send_data(post_data_url, csv, sensors, types, method, time_format)
         csv.close()
+        log.default('Finished in in %.3f s' % (time.time() - start_time))
     else:
         log.error(' deviceType:' + device_type + ' or device:' + device + ' can not be synchronized into system. Please check if KMX is running in normal state')
-    log.default('Finished in in %.3f s' % (time.time() - start_time))
+        log.warn('import skipped')

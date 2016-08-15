@@ -5,6 +5,7 @@ import numpy
 import pylab
 import json
 from request import get
+import log
 
 numpy.seterr(divide='ignore',invalid='ignore')
 
@@ -47,7 +48,7 @@ def get_data_frame_data(payload, sensors):
 
 def describe(payload, sensors):
     data_frame = get_data_frame_data(payload, sensors)
-    print data_frame.describe()
+    log.default(data_frame.describe())
 
 
 def plot(payload, sensors):
