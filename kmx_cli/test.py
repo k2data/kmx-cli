@@ -47,6 +47,7 @@ update device set deviceTypeId=update_{device_type}, tags =(x , xx , xxx), attri
 eguiesdf;
 '''.format(device_type=device_type,device=device)
 
+sql = 'update device set tags =(x , xx , xxx), attributes = (k1 v1, "k2" v2) where id = "dt_sync_02_dWavQ"';
 
 if __name__ == '__main__':
     statements = sqlparse.parsestream(sql.replace('\n', ''), 'utf-8')

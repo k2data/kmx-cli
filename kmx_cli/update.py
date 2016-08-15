@@ -41,8 +41,7 @@ def parse_where(token):
         log.error("Syntax error in where: " + token.value)
         return
 
-    if comparisons[0].value.strip().lower != 'id':
-
+    if comparisons[0].value.strip().lower() != 'id':
         log.error("Syntax error in where : " + comparisons[0].value + '. expected <id>')
         return
 

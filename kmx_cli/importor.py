@@ -211,22 +211,30 @@ def run(url, statement):
     start_time = time.time()
 
     #  检查device-type 和 devices是否注册，没有则自动注册
-    log.default(' check if deviceType:' + device_type + ' is registed and PUBLISHED')
+    log.default('check if deviceType:' + device_type + ' is registed and PUBLISHED')
     if not is_regist(url + '/device-types/' + device_type):
-        log.primary(' deviceType：' + device_type + " doesn't be registered, will regist automatically")
-        regist(url + '/device-types',device_type_payload(device_type, sensors, types))
-    success, payload = wait_published(url + '/device-types/' + device_type, key='deviceType')
+        log.primary('deviceType：' + device_type + " doesn't be registered")
+        regist_device_type = True
 
-    log.default(' check if device:' + device + ' is registed and PUBLISHED')
-    if success and not is_regist(url + '/devices/' + device):
-        log.primary(' device：' + device + " doesn't be registered, will regist automatically")
-        regist(url + '/devices',device_payload(device, device_type))
-    success, payload = wait_published(url + '/devices/' + device)
-
-    if payload['deviceTypeId'] != device_type:
-        log.warn('device:' + device + ' is related to deviceType:' + payload['deviceTypeId'] + ',which not matched ' + device_type)
+    log.default('check if device:' + device + ' is registed and PUBLISHED')
+    if not is_regist(url + '/devices/' + device):
+        log.primary('device：' + device + " doesn't be registered")
+        regist_device = True
+    else:
+        success, payload = wait_published(url + '/devices/' + device)
+        if payload and payload['device']['deviceTypeId'] != device_type:
+            log.warn('device:' + device + ' is related to deviceType:' + payload['device']['deviceTypeId'] + ',which not matched ' + device_type)
         csv.close()
         return
+
+    if regist_device_type:
+        log.info('regist deviceType:' + device_type + ' automatically')
+        regist(url + '/device-types',device_type_payload(device_type, sensors, types))
+        success, payload = wait_published(url + '/device-types/' + device_type, key='deviceType')
+
+    if regist_device:
+        log.info('regist device:' + device + ' automatically')
+        regist(url + '/devices',device_payload(device, device_type))
 
     if success:
         # log.default('.....................start import ')
