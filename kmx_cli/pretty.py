@@ -6,16 +6,25 @@ from tabulate import tabulate
 from colorama import Fore
 import log
 
+
 def pretty_page(pages):
     print 'total:%d    size:%d    pageNum:%d    pages:%d    pageSize:%d\n' % (pages['total'],pages['size'],pages['pageNum'],pages['pages'],pages['pageSize'])
 
-def draw_table(rows, headers, fmt='psql'):
+
+def draw_table(rows, headers, fmt='psql', path=''):
     if not rows:
         print 'return 0 record.'
+    elif fmt == 'csv' and path:
+        output = open(path,'w')
+        output.write(','.join(headers) + '\n')
+        for row in rows:
+            output.write(','.join([str(i) for i in row]) + '\n')
+        output.close()
     else:
         print tabulate(rows, headers, tablefmt=fmt)
 
-def pretty_data_query(payload, fmt='psql'):
+
+def pretty_data_query(payload, fmt='psql', path=''):
     ''' @author: Chang, Xue
         @param: query_result is a dict
         @param: fmt may be 'json', 'plain', 'simple', 'grid', 'fancy_grid',
@@ -57,7 +66,7 @@ def pretty_data_query(payload, fmt='psql'):
             for key in headers:
                 row.append(result_dict.get(key, '')) #如果该行没有该sensor补空
             result.append(row)
-        draw_table(result, headers, fmt)
+        draw_table(result, headers, fmt, path)
     elif 'dataPoints' in payload.keys(): #单设备-传感器时间点查询
         keys = payload['dataPoints'][0].keys()
         ts_key = 'iso' if 'iso' in keys else 'timestamp'
@@ -70,7 +79,7 @@ def pretty_data_query(payload, fmt='psql'):
             headers.append(sensor)
             row.append(rec.get('value', non_exist))
         result.append(row)
-        draw_table(result, headers, fmt)
+        draw_table(result, headers, fmt, path)
 
     if 'pageInfo' in payload:
         pages = payload['pageInfo']

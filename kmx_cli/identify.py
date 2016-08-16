@@ -13,6 +13,13 @@ identifiers = copy.deepcopy(default_identifiers)
 identifiers.extend(custom_identifiers)
 
 
+def strip_quotes(value):
+    value = value.strip()
+    if (value.startswith("'") and value.endswith("'")) or (value.startswith('"') and value.endswith('"')):
+        value = value[1:-1]
+    return value
+
+
 def unrecognized(statement):
     log.error('command： <' + statement.tokens[0].value.encode("utf-8").split(' ')[0] + '> is not supported. Only supported: ' + ','.join(identifiers))
 
@@ -92,10 +99,12 @@ def find_next_token_by_ttype(sql, lambda_func, target_ttype):
     :param target_ttype:
     :return:
     '''
+    target = ''
     tokens = TokenList(sql.tokens)
     if isinstance(tokens, TokenList):
         tokens = list(tokens.flatten())
         tokens = TokenList(tokens)
+
         source_token = tokens.token_matching(lambda_func, 0)
         if source_token:
             source_idx = tokens.token_index(source_token, 0)

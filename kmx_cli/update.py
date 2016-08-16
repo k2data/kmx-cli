@@ -7,17 +7,10 @@ from sqlparse.sql import Identifier, IdentifierList, Where, Parenthesis
 from sqlparse.sql import Comparison as sqlComparison
 import log
 import request
+from identify import strip_quotes
 import pretty
 
 tables = ['device', 'devicetype']
-
-
-def strip_quotes(value):
-    value = value.strip()
-    if (value.startswith("'") and value.endswith("'")) or (value.startswith('"') and value.endswith('"')):
-        value = value[1:-1]
-    return value
-
 
 def parse_where(token):
     # 判断是否是where

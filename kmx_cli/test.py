@@ -54,13 +54,13 @@ eguiesdf;
 '''.format(device_type=device_type,device=device)
 
 
-# sql = '''
-# select describe(DOUBLE_dt_sync_02_dWavQ) from device_sync_01_dWavQ where ts=1469672032196;
-#
-# select describe(DOUBLE_dt_sync_02_dWavQ) from device_sync_01_dWavQ where ts>1469672032196 and ts<1469672032644;
-# select line(DOUBLE_dt_sync_02_dWavQ) from device_sync_01_dWavQ where ts>'2016-07-28T10:13:52.196%2B08:00' and ts<'2016-07-28T10:13:52.644%2B08:00';
-# select box(DOUBLE_dt_sync_02_dWavQ) from device_sync_01_dWavQ where ts>'2016-07-28T10:13:52.196+08:00' and ts<'2016-07-28T10:13:52.644+08:00';
-# '''
+sql = '''
+select describe(DOUBLE_dt_sync_02_dWavQ) from device_sync_01_dWavQ where ts=1469672032196;
+
+select describe(DOUBLE_dt_sync_02_dWavQ) from device_sync_01_dWavQ where ts>1469672032196 and ts<1469672032644;
+select line(DOUBLE_dt_sync_02_dWavQ) from device_sync_01_dWavQ where ts>'2016-07-28T10:13:52.196%2B08:00' and ts<'2016-07-28T10:13:52.644%2B08:00';
+select box(DOUBLE_dt_sync_02_dWavQ) from device_sync_01_dWavQ where ts>'2016-07-28T10:13:52.196+08:00' and ts<'2016-07-28T10:13:52.644+08:00';
+'''
 
 if __name__ == '__main__':
     statements = sqlparse.parsestream(sql.replace('\n', ''), 'utf-8')

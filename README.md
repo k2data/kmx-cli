@@ -162,6 +162,13 @@ select describe(DOUBLE_dt_sync_02_dWavQ) from device_sync_01_dWavQ where ts>1469
 select line(DOUBLE_dt_sync_02_dWavQ) from device_sync_01_dWavQ where ts>'2016-07-28T10:13:52.196%2B08:00' and ts<'2016-07-28T10:13:52.644%2B08:00';
 select box(DOUBLE_dt_sync_02_dWavQ) from device_sync_01_dWavQ where ts>'2016-07-28T10:13:52.196+08:00' and ts<'2016-07-28T10:13:52.644+08:00';
 ```
+#
+## export dynamic data
+```
+select <sensorId>[,<sensorId>...] from <deviceId> [where ts={<timestamp> |'<iso>' | 'relative_time_expr'}]  [page <m> ] [size <n>] into '<outfile_path>'
+select * from <deviceId> [where ts={<timestamp> |'<iso>' | 'relative_time_expr'}] [page <m> ] [size <n>] into '<outfile_path>'
+
+```
 
 ## Query metadata
 
