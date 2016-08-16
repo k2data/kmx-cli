@@ -11,7 +11,7 @@ import time
 cur_dir = os.path.abspath(os.path.dirname(__file__))
 path = os.path.abspath(os.path.join(cur_dir, '../kmx_cli'))
 sys.path.append(path)
-import create,metadata,cli,log
+import create,metadata,client,log
 
 
 class Tester(unittest.TestCase):
@@ -30,7 +30,7 @@ class Tester(unittest.TestCase):
             for statement in statements:
                 self.assertEqual(create.create(self.url, statement), True, 'failed with sql=[' + sql + ']')
         else:
-            cli.transfer(self.url, statements)
+            client.transfer(self.url, statements)
 
     def tearDown(self):
         time.sleep(20)
@@ -41,7 +41,7 @@ class Tester(unittest.TestCase):
                     'drop devicetype ' + self.device_type[1]
                   ]
         statements = sqlparse.parse(';'.join(deletes), 'utf-8')
-        cli.transfer(self.url, statements)
+        client.transfer(self.url, statements)
 
     def test_create_device(self):
         log.primary('================================================== test create device ==================================================')
