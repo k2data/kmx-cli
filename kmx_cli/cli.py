@@ -2,19 +2,18 @@
 # -*- coding: utf-8 -*-
 '''
 kmx -u http://192.168.130.2/cloud/qa3/kmx/v2
->>>
 
 # create meta data
->>>create deviceType device_type_name(sensor1 String,sensor2 Float) tags(t1,t2,标签) attributes(属性 属性值,k2 v2)
->>>create device device_name(device_type_name) tags(t1,t2,标签) attributes(属性 属性值,k2 v2)
+>> create deviceType device_type_name(sensor1 String,sensor2 Float) tags(t1,t2,标签) attributes(属性 属性值,k2 v2)
+>> create device device_name(device_type_name) tags(t1,t2,标签) attributes(属性 属性值,k2 v2)
 
 # update meta data
->>>update devicetype set tags =(x , xx , xxx), attributes = (k1 v1, "k2" v2) where id = "device_type_name"
->>>update device set deviceTypeId=device_type_name ,tags =(x , xx , xxx), attributes = (k1 v1, "k2" v2) where id = "device_name"
->>>drop {device|devicetype} idd
+>> update devicetype set tags =(x , xx , xxx), attributes = (k1 v1, "k2" v2) where id = "device_type_name"
+>> update device set deviceTypeId=device_type_name ,tags =(x , xx , xxx), attributes = (k1 v1, "k2" v2) where id = "device_name"
+>> drop {device|devicetype} idd
 
 # load dynamic data
->>>import 'filepath/data.csv' into device_type_name
+>> import 'filepath/data.csv' into device_type_name
 data.csv
 ---------------------------------------------------------------
 device,iso,sensor1,sensor2,sensor3,sensor4,sensor5,sensor6
@@ -40,30 +39,30 @@ wildcard: '_' match 0 ~ 1 character
 
 String must be quoted if chinese or other special characters in it.
 
->>>show devices
->>>show devices page 1 size 10
->>>show devices like *gw%
->>>show devices where devicetype=device_type_name
->>>show devicetypes where tag='标签'
+>> show devices
+>> show devices page 1 size 10
+>> show devices like *gw%
+>> show devices where devicetype=device_type_name
+>> show devicetypes where tag='标签'
 
 ## query dynamic data
->>>select sensor_name from device_name where ts > 'now-1h' and ts < 'now'
->>>select sensor_name from device_name where ts > 'now-1h'
->>>select sensor_name from device_name where ts < 'now-1d'
->>>select * from device_name
->>>select sensor1,sensor2 from device_name where ts=1469672032196
->>>select * from device_name where ts>'2016-07-28T10:13:52.196+08:00' and ts<'2016-07-28T10:13:52.644+08:00'
+>> select sensor_name from device_name where ts > 'now-1h' and ts < 'now'
+>> select sensor_name from device_name where ts > 'now-1h'
+>> select sensor_name from device_name where ts < 'now-1d'
+>> select * from device_name
+>> select sensor1,sensor2 from device_name where ts=1469672032196
+>> select * from device_name where ts>'2016-07-28T10:13:52.196+08:00' and ts<'2016-07-28T10:13:52.644+08:00'
 
 # URL control
->>>url
->>>url http://192.168.130.2/cloud/qa1/kmx/v2
+>> url
+>> url http://192.168.130.2/cloud/qa1/kmx/v2
 
 # History
->>>history
+>> history
 
 # Shell command
->>>!pwd
->>>!ls
+>> !pwd
+>> !ls
 
 '''
 import argparse
