@@ -68,13 +68,13 @@ select describe(*) from <deviceId> [where ts > {<timestamp> |'<iso>' | 'relative
 
 ## 8.2 Generate line chart for your dynamic data
 ```
-select line(<sensorId>[,<sensorId>...]) from <deviceId> [where ts > {<timestamp> |'<iso>' | 'relative_time_expr'} and ts < {<timestamp> |'<iso>' | 'relative_time_expr'}]
-select line(*) from <deviceId> [where ts > {<timestamp> |'<iso>' | 'relative_time_expr'} and ts < {<timestamp> |'<iso>' | 'relative_time_expr'}]
+select plot(<sensorId>[,<sensorId>...]) from <deviceId> [where ts > {<timestamp> |'<iso>' | 'relative_time_expr'} and ts < {<timestamp> |'<iso>' | 'relative_time_expr'}]
+select plot(*) from <deviceId> [where ts > {<timestamp> |'<iso>' | 'relative_time_expr'} and ts < {<timestamp> |'<iso>' | 'relative_time_expr'}]
 ```
 ***relative_time_expr:***  ```^(now)(-)([0-9]+)([s,m,h,d,w]{1})$```
 ## 8.3 Generate box diagram for your dynamic data
 ```
-select box(<sensorId>[,<sensorId>...]) from <deviceId> [where ts > {<timestamp> |'<iso>' | 'relative_time_expr'} and ts < {<timestamp> |'<iso>' | 'relative_time_expr'}]
-select box(*) from <deviceId> [where ts > {<timestamp> |'<iso>' | 'relative_time_expr'} and ts < {<timestamp> |'<iso>' | 'relative_time_expr'}]
+select boxplot(<sensorId>[,<sensorId>...]) from <deviceId> [where ts > {<timestamp> |'<iso>' | 'relative_time_expr'} and ts < {<timestamp> |'<iso>' | 'relative_time_expr'}]
+select boxplot(*) from <deviceId> [where ts > {<timestamp> |'<iso>' | 'relative_time_expr'} and ts < {<timestamp> |'<iso>' | 'relative_time_expr'}]
 ```
 ***relative_time_expr:***  ```^(now)(-)([0-9]+)([s,m,h,d,w]{1})$```

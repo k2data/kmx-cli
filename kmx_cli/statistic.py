@@ -84,12 +84,12 @@ def box(payload, sensors):
 def execute(payload, sensors, function):
     if function == 'describe':
         describe(payload, sensors)
-    elif function == 'line':
+    elif function == 'plot':
         plot(payload, sensors)
-    elif function == 'box':
+    elif function == 'boxplot':
         box(payload, sensors)
     else:
-        log.error("do not support :" + function)
+        log.error("statistic do not support :" + function + '. Only support [describe, plot, boxplot]')
 
 
 if __name__ == '__main__':
