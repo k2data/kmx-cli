@@ -207,7 +207,7 @@ def dyn_query(url, dml):
     select = {"sources": sources}
 
     # page and size
-    page,size = get_page_size(dml)
+    page, size = get_page_size(dml)
     page_size = ''
     if page:
         page_size += '&page=' + str(page)
@@ -273,8 +273,8 @@ def get_page_size(sql):
     return page, size
 
 
-def get_sensors_by_device(url, deviceid):
-    uri = url + '/devices/' + deviceid
+def get_sensors_by_device(url, device_id):
+    uri = url + '/devices/' + device_id
     payload = get(uri).text
     response = json.loads(payload)
     sensors_list = response['device']['sensors']
