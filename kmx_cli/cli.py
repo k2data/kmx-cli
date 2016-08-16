@@ -158,7 +158,7 @@ class Client(cmd.Cmd):
         log.warn(__doc__)
 
     def default(self, line):
-        self.kmx_cmd(self.url, line)
+        self.kmx_cmd(line)
 
     def emptyline(self):
         """Called when an empty line is entered in response to the prompt.
