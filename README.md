@@ -152,9 +152,9 @@ select sensor_name
 *Note, Page and Size is not required, if Page or Size is not set, default value will be used.*
 #
 ## dynamic data statistic
-before use statistic,you must install pandas
+statistic depends pandas,you must install pandas first
 ```
-sudo apt-get install pandas
+sudo apt-get install python-pandas
 ```
 use describe/plot/boxplot to statistic data from data range query
 ```
