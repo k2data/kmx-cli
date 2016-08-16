@@ -28,27 +28,30 @@ def parse_payload(payload, sensors):
 
     data_rows = payload['dataRows']
     for data_row in data_rows:
-        if data_row.has_key('iso'):
+        ids = []
+        if 'iso' in data_row:
             index.append(data_row['iso'])
         else:
             index.append(data_row['timestamp'])
         data_points = data_row['dataPoints']
         for data_point in data_points:
             sensor = data_point['sensor']
-            value = placeholder if 'value' not in data_point.keys() else data_point['value']
-            if value != 'null' and is_number(value):
-                values[sensor].append(value)
-            else:
-                values[sensor].append(placeholder)
+            if sensor not in ids:
+                value = placeholder if 'value' not in data_point else data_point['value']
+                if value != 'null' and is_number(value):
+                    values[sensor].append(value)
+                else:
+                    values[sensor].append(placeholder)
+                ids.append(sensor)
     return index, values
 
 
 def get_data(sensors, values):
     numpy.seterr(all='ignore')
-    data_type = 'float64'
     data = {}
     for sensor in sensors:
-        data[sensor] = numpy.array(values[sensor], dtype=data_type)
+        data[sensor] = numpy.array(values[sensor])
+        # data[sensor] = numpy.array(values[sensor], data_type='float64')
     return data
 
 
@@ -77,7 +80,6 @@ def plot(payload, sensors):
 def box(payload, sensors):
     data_frame = get_data_frame_data(payload, sensors)
     data_frame.boxplot(return_type='dict')
-    # data_frame.boxplot(return_type='axes')
     pylab.show()
 
 
@@ -97,12 +99,12 @@ if __name__ == '__main__':
           'select={"sources":{"device":"C30229_05",' + \
           '"sensors":["engineTemperature","xx","enginRotate","latitudeNum"],' + \
           '"timeRange":{"start":{"iso":"1970-01-01T00:00:00.001-00:00"},"end":{"iso":"2016-08-15T09:44:55.687%2B08:00"}}}}' + \
-          '&size=5'
+          '&size=100'
     import json
     response = get(url)
     response_payload = json.loads(response.text)
     response.close()
-    sensor_ids = ["engineTemperature", "xx", "enginRotate","latitudeNum"]
+    sensor_ids = ["engineTemperature", "xx","enginRotate", "enginRotate","latitudeNum"]
 
     describe(response_payload, sensor_ids)
     plot(response_payload, sensor_ids)
