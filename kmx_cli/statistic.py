@@ -1,10 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import pandas
-import numpy
-import pylab
-from request import get
 import log
+try:
+    import pandas
+    import numpy
+    import pylab
+except:
+    raise Exception('statistic dependy on pandas. but pandas does not install on your system.\n' + "try 'sudo apt-get instal -y python-pandas' to install it")
+
+from request import get
 
 numpy.seterr(divide='ignore',invalid='ignore')
 

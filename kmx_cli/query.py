@@ -15,7 +15,6 @@ import timeit
 import identify
 
 from request import get
-import statistic
 from pretty import pretty_data_query
 import log
 
@@ -153,7 +152,6 @@ def get_where(sql):
                     elif comp == '<':
                         rangeQueryEnd.update({id: value})
 
-
     if pointQueryValue:
         return pointQuery
     elif rangeQueryStart:
@@ -169,12 +167,17 @@ def get_where(sql):
         return rangeQuery
 
 
+def get_into(sql):
+    return identify.find_next_token_by_ttype(sql, lambda token: token.value.upper() == 'INTO', Literal.String.Single)
+
+
 def dyn_query(url, dml):
     devices = get_tables(dml)
     if not devices:
         log.error('Device should be provided ...')
         return
     if len(devices) > 1:
+        print devices
         log.error('Multi-devices query is not supported now ...')
         return
     is_function, sensors, function = get_sensors(dml)
@@ -217,6 +220,7 @@ def dyn_query(url, dml):
         uri = url + '/data/' + query_url + '?select=' + json.dumps(select)
     log.primary(uri)
     print
+
     start_time = timeit.default_timer()
     response = get(uri)
     response.close()
@@ -227,11 +231,18 @@ def dyn_query(url, dml):
         log.error(response.text)
     else:
         payload = json.loads(response.text)
-        pretty_data_query(payload)
+        into, path = get_into(dml)
+        print '>'*20,into,path
+        if into and path:
+            pretty_data_query(payload,fmt='csv', path=identify.strip_quotes(path))
+        else:
+            pretty_data_query(payload,fmt='psql', path=path)
+
         log.default('Returned in %.2f s' % elapsed)
 
         if is_function:
             if is_statistic:
+                import statistic
                 print
                 statistic.execute(payload, sensors, function)
             else:
