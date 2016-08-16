@@ -20,7 +20,7 @@ create device <deviceId>(<deviceTypeId>) tags(t1[,...]) attributes(k1 v1[,...])
 ```
 update devicetype set tags(t1[,...]) attributes(k1 v1[,...]) where id = <deviceTypeId>
 ```
-3.2 update device
+## 3.2 update device
 ```
 update device set deviceTypeId=<deviceTypeId>,tags(t1[,...]) attributes(k1 v1[,...]) where id = <deviceId>
 ```
@@ -53,7 +53,7 @@ select * from device_name [where ts>{<timestamp> |'<iso>' } and {<timestamp> |'<
 
 #
 # 7. statistic dynamic data
-==*statistic depends on pandas*==
+*statistic depends on pandas*
 ## 7.1 Describe shows a quick statistic summary of your dynamic data
 ```
 select describe(<sensorId>[,<sensorId>...]) from <deviceId> [where ts > {<timestamp> |'<iso>' | 'relative_time_expr'} and ts < {<timestamp> |'<iso>' | 'relative_time_expr'}]
