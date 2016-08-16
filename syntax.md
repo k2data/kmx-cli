@@ -35,16 +35,21 @@ drop {device | devicetype} {<deviceTypeId> | <deviceId>}
 import '<csv_file_path>' into <deviceTypeId>
 ```
 #
-# 6. query dynamic data
-## 6.1 data point query
+# 6. export dynamic data
+```
+select <sensorId>[,<sensorId>...] from <deviceId> [where ts={<timestamp> |'<iso>' | 'relative_time_expr'}]  [page <m> ] [size <n>] into '<outfile_path>'
+select * from <deviceId> [where ts={<timestamp> |'<iso>' | 'relative_time_expr'}] [page <m> ] [size <n>] into '<outfile_path>'
+```
+#
+# 7. query dynamic data
+## 7.1 data point query
 ```
 select <sensorId>[,<sensorId>...] from <deviceId> [where ts={<timestamp> |'<iso>' | 'relative_time_expr'}]
 select * from <deviceId> [where ts={<timestamp> |'<iso>' | 'relative_time_expr'}]
 ```
 ***relative_time_expr:***  ```^(now)(-)([0-9]+)([s,m,h,d,w]{1})$```
 
-
-## 6.1 data range query
+## 7.2 data range query
 ```
 select <sensorId>[,<sensorId>...] from <deviceId> [where ts > {<timestamp> |'<iso>' | 'relative_time_expr'} and ts < {<timestamp> |'<iso>' | 'relative_time_expr'}]
 select * from device_name [where ts>{<timestamp> |'<iso>' } and {<timestamp> |'<iso>' }]
@@ -52,22 +57,22 @@ select * from device_name [where ts>{<timestamp> |'<iso>' } and {<timestamp> |'<
 ***relative_time_expr:***  ```^(now)(-)([0-9]+)([s,m,h,d,w]{1})$```
 
 #
-# 7. statistic dynamic data
+# 8. statistic dynamic data
 *statistic depends on pandas*
-## 7.1 Describe shows a quick statistic summary of your dynamic data
+## 8.1 Describe shows a quick statistic summary of your dynamic data
 ```
 select describe(<sensorId>[,<sensorId>...]) from <deviceId> [where ts > {<timestamp> |'<iso>' | 'relative_time_expr'} and ts < {<timestamp> |'<iso>' | 'relative_time_expr'}]
 select describe(*) from <deviceId> [where ts > {<timestamp> |'<iso>' | 'relative_time_expr'} and ts < {<timestamp> |'<iso>' | 'relative_time_expr'}]
 ```
 ***relative_time_expr:***  ```^(now)(-)([0-9]+)([s,m,h,d,w]{1})$```
 
-## 7.2 Generate line chart for your dynamic data
+## 8.2 Generate line chart for your dynamic data
 ```
 select line(<sensorId>[,<sensorId>...]) from <deviceId> [where ts > {<timestamp> |'<iso>' | 'relative_time_expr'} and ts < {<timestamp> |'<iso>' | 'relative_time_expr'}]
 select line(*) from <deviceId> [where ts > {<timestamp> |'<iso>' | 'relative_time_expr'} and ts < {<timestamp> |'<iso>' | 'relative_time_expr'}]
 ```
 ***relative_time_expr:***  ```^(now)(-)([0-9]+)([s,m,h,d,w]{1})$```
-## 7.3 Generate box diagram for your dynamic data
+## 8.3 Generate box diagram for your dynamic data
 ```
 select box(<sensorId>[,<sensorId>...]) from <deviceId> [where ts > {<timestamp> |'<iso>' | 'relative_time_expr'} and ts < {<timestamp> |'<iso>' | 'relative_time_expr'}]
 select box(*) from <deviceId> [where ts > {<timestamp> |'<iso>' | 'relative_time_expr'} and ts < {<timestamp> |'<iso>' | 'relative_time_expr'}]
