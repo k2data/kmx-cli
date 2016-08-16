@@ -45,10 +45,10 @@ def parse_payload(payload, sensors):
 
 def get_data(sensors, values):
     numpy.seterr(all='ignore')
-    data_type = 'float64'
     data = {}
     for sensor in sensors:
-        data[sensor] = numpy.array(values[sensor], dtype=data_type)
+        data[sensor] = numpy.array(values[sensor])
+        # data[sensor] = numpy.array(values[sensor], data_type='float64')
     return data
 
 
