@@ -50,3 +50,26 @@ select <sensorId>[,<sensorId>...] from <deviceId> [where ts > {<timestamp> |'<is
 select * from device_name [where ts>{<timestamp> |'<iso>' } and {<timestamp> |'<iso>' }]
 ```
 ***relative_time_expr:***  ```^(now)(-)([0-9]+)([s,m,h,d,w]{1})$```
+
+#
+# 7. statistic dynamic data
+==*statistic depends on pandas*==
+## 7.1 Describe shows a quick statistic summary of your dynamic data
+```
+select describe(<sensorId>[,<sensorId>...]) from <deviceId> [where ts > {<timestamp> |'<iso>' | 'relative_time_expr'} and ts < {<timestamp> |'<iso>' | 'relative_time_expr'}]
+select describe(*) from <deviceId> [where ts > {<timestamp> |'<iso>' | 'relative_time_expr'} and ts < {<timestamp> |'<iso>' | 'relative_time_expr'}]
+```
+***relative_time_expr:***  ```^(now)(-)([0-9]+)([s,m,h,d,w]{1})$```
+
+## 7.2 Generate line chart for your dynamic data
+```
+select line(<sensorId>[,<sensorId>...]) from <deviceId> [where ts > {<timestamp> |'<iso>' | 'relative_time_expr'} and ts < {<timestamp> |'<iso>' | 'relative_time_expr'}]
+select line(*) from <deviceId> [where ts > {<timestamp> |'<iso>' | 'relative_time_expr'} and ts < {<timestamp> |'<iso>' | 'relative_time_expr'}]
+```
+***relative_time_expr:***  ```^(now)(-)([0-9]+)([s,m,h,d,w]{1})$```
+## 7.3 Generate box diagram for your dynamic data
+```
+select box(<sensorId>[,<sensorId>...]) from <deviceId> [where ts > {<timestamp> |'<iso>' | 'relative_time_expr'} and ts < {<timestamp> |'<iso>' | 'relative_time_expr'}]
+select box(*) from <deviceId> [where ts > {<timestamp> |'<iso>' | 'relative_time_expr'} and ts < {<timestamp> |'<iso>' | 'relative_time_expr'}]
+```
+***relative_time_expr:***  ```^(now)(-)([0-9]+)([s,m,h,d,w]{1})$```

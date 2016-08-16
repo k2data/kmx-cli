@@ -77,7 +77,7 @@ git clone https://github.com/k2data/kmx-cli.git -b dev
 ./kmx-cli/install.sh
 ```
 
-### Query data
+## Query data
 The only thing you have to do is:
 Use URL of your HTTP RESTful query as parameter for kmx-cli.
 ```
@@ -131,7 +131,7 @@ Use 'bye' or 'exit' to quit kmx-cli
 Exit KMX CLI ...
 ```
 
-#### Relative time support
+### Relative time support
 kmx-cli support relative time for human readable.
 ```
 select sensor_name from device_name where ts>'now-1w' and ts<'now'
@@ -142,7 +142,7 @@ relative time format is:
 ^(now)(-)([0-9]+)([s,m,h,d,w]{1})$
 ```
 
-#### Page and Size keyword support
+### Page and Size keyword support
 ```
 select sensor_name
     from device_name
@@ -150,8 +150,20 @@ select sensor_name
     page 3 size 40
 ```
 *Note, Page and Size is not required, if Page or Size is not set, default value will be used.*
+#
+## dynamic data statistic
+before use statistic,you must install pandas
+```
+sudo apt-get install pandas
+```
+use describe/line/box to statistic data from data range query
+```
+select describe(DOUBLE_dt_sync_02_dWavQ) from device_sync_01_dWavQ where ts>1469672032196 and ts<1469672032644;
+select line(DOUBLE_dt_sync_02_dWavQ) from device_sync_01_dWavQ where ts>'2016-07-28T10:13:52.196%2B08:00' and ts<'2016-07-28T10:13:52.644%2B08:00';
+select box(DOUBLE_dt_sync_02_dWavQ) from device_sync_01_dWavQ where ts>'2016-07-28T10:13:52.196+08:00' and ts<'2016-07-28T10:13:52.644+08:00';
+```
 
-### Query metadata
+## Query metadata
 
 ```
 show {devicetype|device} id
@@ -166,15 +178,15 @@ show devices where devicetype=xxx # qurey all devices whoese deviceTypeId = xxx
 show devices like xxx    # query all devices match xxx, wildcard:_,%,*
 ```
 
-### Create metadata
+## Create metadata
 
-#### Create deviceType
+### Create deviceType
 ```
 create deviceType deviceTypeId(sensor1 valueType,sensor2 valueType, ......) tags(t1,t2,...) attributes(k1 v1,k2 v2,....)
 ```
 * valueType is sensor's valueType and must be in [ STRING,DOUBLE,FLOAT,INT,LONG,BOOLEAN]
 
-#### Create device
+### Create device
 ```
 create device device_id(device_type_id) tags(t1,t2,...) attributes(k1 v1,k2 v2,....)
 ```
@@ -183,21 +195,20 @@ create device device_id(device_type_id) tags(t1,t2,...) attributes(k1 v1,k2 v2,.
 * attribute's key and value should be separated by space.
 * attribute's key and value does not suppurt space inside it
 
-### Drop metadata
+## Drop metadata
 
-#### drop devicetype
+### drop devicetype
 ```
 drop devicetype device_type_id [,device_type_id]
 ```
 
-#### drop device
+### drop device
 ```
 drop device device_id [,device_id]
-
 ```
 
-### update metadata
-#### update deviceType
+## update metadata
+### update deviceType
 ```
 update devicetype set tags =(x , xx , xxx), attributes = (k1 v1, "k2" v2) where id='{device_type_id}'',
 update devicetype set tags =(x, "xx" , 'xxx'), attributes = ('k1' "v1", "k2" v2) where id="device_type_id",
@@ -207,7 +218,7 @@ update devicetype set tags = (x,"xx",'xxx'), attributes=('k1' "v1", "k2" v2) whe
 * attribute's key and value should be separated by space.
 * attribute's key and value does not suppurt space inside it
 
-#### update device
+### update device
 ```
 update device set deviceTypeId={device_type_id} ,tags =(x , 'xx' , "xxx"), attributes = (k1 v1, "k2" v2,'k3' 'v3') where id =device_id
 update device set deviceTypeId={'device_type_id}' ,tags =(x , 'xx' , "xxx"), attributes = (k1 v1, "k2" v2,'k3' 'v3') where id ='{device_id}'
@@ -218,7 +229,7 @@ update device set deviceTypeId={"device_type_id"} ,tags =(x , 'xx' , "xxx"), att
 * attribute's key and value should be separated by space.
 
 
-### import csv data
+## import csv data
 ```
 import 'csvfile' into deviceType_id
 ```
@@ -229,7 +240,7 @@ d1,iso,DOUBLE,BOOLEAN,INT,LONG,FLOAT,STRING
 d1,2016-01-01T12:34:56.789+08:00,34.56789,false,3456789,1451622896789,34.56789,s34.56789
 d1,2016-01-01T12:34:57.789+08:00,34.57789,true,3457789,1451622897789,34.57789,s34.57789
 ```
-##### csv file format :
+### csv file format :
 1. the first and second are the descriptions of csv file and it must be written correctly
 2. the first line should be like 'device,${time},sensor1,sensor2......'
 3. the second line should be like '${deviceId},${time_format},valueType1,,valueType2......'
@@ -244,7 +255,7 @@ In short,please make sure the data match it's description
 
 
 
-### Batch mode
+## Batch mode
 ```
 source path [,path]...
 ```
@@ -261,7 +272,7 @@ show devices;
 --select DOUBLE_dt_sync_02_dWavQ from device_sync_01_dWavQ where ts=1469672032196;
 ```
 
-### Switch URL in context
+## Switch URL in context
 You can switch URL in kmx-cli, just type "url <new_url>" like:
 ```
 Query URL: http://218.56.128.30:16805/kmx/v2
@@ -269,14 +280,14 @@ Query URL: http://218.56.128.30:16805/kmx/v2
 New URL: http://192.168.130.2/cloud/qa3/kmx/v2
 ```
 
-### Execute shell command in kmx-cli
+## Execute shell command in kmx-cli
 Use "!" as suffix to indicate this command is a shell one.
 ```
 [rui@127.0.0.1] > !pwd
 /home/pc/PycharmProjects/kmx-cli
 ```
 
-### Browse command history
+## Browse command history
 Use "history" to browse execution history.
 ```
 [rui@127.0.0.1] > history
