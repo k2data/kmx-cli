@@ -308,3 +308,5 @@ select oilLevel from C302DE where ts > 'now-1h' and ts < 'now'
 select oilLevel,oilTemperature from C302DE where ts > 'now-1h' and ts < 'now'
 select oilLevel,oilTemperature from C302DE where ts > 'now-1d' and ts < 'now'
 ```
+
+for more SQL syntax : https://github.com/k2data/kmx-cli/blob/dev/syntax.md
