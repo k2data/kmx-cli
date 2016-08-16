@@ -139,13 +139,11 @@ class Client(cmd.Cmd):
         cmd, arg, line = self.parseline(line)
         if not line:
             return self.emptyline()
-        if cmd is None:
+        if not cmd:
             return error_message(None)
         self.lastcmd = line
         if line == 'EOF' :
             self.lastcmd = ''
-        if cmd == '':
-            return error_message(None)
         else:
             try:
                 func = getattr(self, 'do_' + cmd.lower())
@@ -158,7 +156,7 @@ class Client(cmd.Cmd):
         log.warn(__doc__)
 
     def default(self, line):
-        self.kmx_cmd(self.url, line)
+        self.kmx_cmd(line)
 
     def emptyline(self):
         """Called when an empty line is entered in response to the prompt.
