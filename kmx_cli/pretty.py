@@ -11,11 +11,11 @@ def pretty_page(pages):
     print 'total:%d    size:%d    pageNum:%d    pages:%d    pageSize:%d\n' % (pages['total'],pages['size'],pages['pageNum'],pages['pages'],pages['pageSize'])
 
 
-def draw_table(rows, headers, fmt='psql', path=''):
+def draw_table(rows, headers, fmt='psql', path=None):
     if not rows:
         print 'return 0 record.'
     elif fmt == 'csv' and path:
-        output = open(path,'w')
+        output = open(path, 'w')
         output.write(','.join(headers) + '\n')
         for row in rows:
             output.write(','.join([str(i) for i in row]) + '\n')
@@ -24,7 +24,7 @@ def draw_table(rows, headers, fmt='psql', path=''):
         print tabulate(rows, headers, tablefmt=fmt)
 
 
-def pretty_data_query(payload, fmt='psql', path=''):
+def pretty_data_query(payload, fmt='psql', path=None):
     ''' @author: Chang, Xue
         @param: query_result is a dict
         @param: fmt may be 'json', 'plain', 'simple', 'grid', 'fancy_grid',
@@ -38,7 +38,7 @@ def pretty_data_query(payload, fmt='psql', path=''):
 
     result = []
     headers = ['device', 'time']
-    non_exist = '-'  # show when key does not exist
+    non_exist = ''  # show when key does not exist
     sensor_map = {}
 
     if 'dataRows' in payload.keys(): # 范围查询
@@ -90,6 +90,7 @@ def pretty_data_query(payload, fmt='psql', path=''):
         log.error(payload['message'])
     return payload['code']
 
+
 def pretty_meta_list(payload, action, fmt='psql'):
     ''' query all devices or device-types
         @action: devices, deviceTypes
@@ -117,21 +118,22 @@ def pretty_meta_list(payload, action, fmt='psql'):
     if pages and pages['total'] != 0:
         pretty_page(pages)
 
-def pretty_meta(payload, path, fmt='psql'):
-    ''' query single device or device-types
+
+def pretty_meta(dict_payload, path, fmt='psql'):
+    ''' create/query single device or device-types
         @path: deviceType, device
     '''
     if format == 'json':
-        print json.dumps(payload, sort_keys=True, indent=4)
+        print json.dumps(dict_payload, sort_keys=True, indent=4)
         return
 
     result = []
     rows = []
     sensors = []
-    headers = payload.keys()
+    headers = dict_payload.keys()
 
-    if path in payload.keys():
-        payload = payload[path];
+    if path in dict_payload.keys():
+        payload = dict_payload[path]
         sensors = payload.pop('sensors')
         headers = payload.keys()
 

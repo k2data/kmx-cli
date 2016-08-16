@@ -84,16 +84,16 @@ import log
 
 
 def execute_ddl(url, statement):
-    ddl = statement.tokens[0].value.lower()
-    if ddl == 'create':
+    start = statement.tokens[0].value.lower()
+    if start == 'create':
         create.create(url, statement)
-    elif ddl == 'drop':
+    elif start == 'drop':
         ddl_operations(url, statement)
 
 
 def execute_dml(url, statement):
-    dml = statement.tokens[0].value.lower()
-    if dml == 'update':
+    start = statement.tokens[0].value.lower()
+    if start == 'update':
         update.update(url, statement)
     else:
         dyn_query(url, statement)
@@ -123,7 +123,8 @@ def error_message(line):
     else:
         log.error('** syntax error: the statement is not supported **')
 
-class cli(cmd.Cmd):
+
+class Client(cmd.Cmd):
     hostname = socket.gethostname();
     ip = socket.gethostbyname(hostname);
     prompt = '[' + hostname + '@' + ip + '] > '
@@ -157,13 +158,11 @@ class cli(cmd.Cmd):
         log.warn(__doc__)
 
     def default(self, line):
-        self.kmxcmd(self.url, line)
+        self.kmx_cmd(self.url, line)
 
     def emptyline(self):
         """Called when an empty line is entered in response to the prompt.
-
         Just pass, do nothing.
-
         """
         pass
 
@@ -223,12 +222,13 @@ class cli(cmd.Cmd):
         """
         print authors
 
-    def kmxcmd(self, url, sql):
+    def kmx_cmd(self, sql):
         try:
-            parsed = sqlparse.parse(sql, 'utf-8')
-            transfer(self.url, parsed)
+            statements = sqlparse.parse(sql, 'utf-8')
+            transfer(self.url, statements)
         except Exception as e:
             error_message(e)
+
 
 def run():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -247,7 +247,7 @@ def run():
         """
         print welcome
         print 'Query URL: ' + Back.GREEN + str(url) + Back.RESET
-        client = cli()
+        client = Client()
         client.url = url
         client.cmdloop()
 

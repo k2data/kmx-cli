@@ -46,7 +46,7 @@ def batch_exec(url,sql):
                         continue
                     parsed = sqlparse.parse(line.rstrip().lstrip()[:-1])
                     log.info(line.rstrip().lstrip()[:-1])
-                    cli.transfer(url,parsed)
+                    cli.transfer(url, parsed)
                 file_handler.close()
             elif os.path.isdir(path.lstrip().rstrip()):
                 files = get_allfilepath(path.lstrip().rstrip())
@@ -56,7 +56,7 @@ def batch_exec(url,sql):
                         for line in file_handler:
                             parsed = sqlparse.parse(line[:-1])
                             log.info(line[:-1])
-                            cli.transfer(url,parsed)
+                            cli.transfer(url, parsed)
                         file_handler.close()
         else:
             log.error('Can not find the File/Dir : ' + path.lstrip().rstrip() + ' ,please check...')

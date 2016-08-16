@@ -232,9 +232,12 @@ def dyn_query(url, dml):
     else:
         payload = json.loads(response.text)
         into, path = get_into(dml)
-        print '>'*20,into,path
-        if into and path:
-            pretty_data_query(payload,fmt='csv', path=identify.strip_quotes(path))
+
+        if into:
+            if path:
+                pretty_data_query(payload,fmt='csv', path=identify.strip_quotes(path))
+            else:
+                log.error("Syntax error after : " + into + '. Should follow a file path.')
         else:
             pretty_data_query(payload,fmt='psql', path=path)
 
