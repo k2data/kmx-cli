@@ -62,6 +62,8 @@ select DOUBLE_dt_sync_02_dWavQ from device_sync_01_dWavQ where ts>'2015-07-28T10
 select DOUBLE_dt_sync_02_dWavQ from device_sync_01_dWavQ where ts>'2015-07-28T10:13:52+08:00' and ts<'2016-07-28T10:13:52.243+08:00';
 select DOUBLE_dt_sync_02_dWavQ from device_sync_01_dWavQ where ts>'2015-07-28T10:13:52+08:00' and ts<'2016-07-28 10:12';
 select DOUBLE_dt_sync_02_dWavQ from device_sync_01_dWavQ where ts>'2015-07-28 10:13';
+select DOUBLE_dt_sync_02_dWavQ from device_sync_01_dWavQ where ts>'2015-07-28T10:13';
+select DOUBLE_dt_sync_02_dWavQ from device_sync_01_dWavQ where ts>'2015-07-28 10:13+08:00';
 '''
 
 
