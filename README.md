@@ -156,9 +156,10 @@ statistic depends pandas,you must install pandas first
 ```
 sudo apt-get install python-pandas
 ```
-use describe/plot/boxplot to statistic data from data range query
+use describe/hist,plot/boxplot to statistic data from data range query
 ```
 select describe(DOUBLE_dt_sync_02_dWavQ) from device_sync_01_dWavQ where ts>1469672032196 and ts<1469672032644;
+select hist(DOUBLE_dt_sync_02_dWavQ) from device_sync_01_dWavQ where ts>'2015-07-28 10:13' and ts<'2016-07-28';
 select plot(DOUBLE_dt_sync_02_dWavQ) from device_sync_01_dWavQ where ts>'2016-07-28T10:13:52.196%2B08:00' and ts<'2016-07-28T10:13:52.644%2B08:00';
 select boxplot(DOUBLE_dt_sync_02_dWavQ) from device_sync_01_dWavQ where ts>'2016-07-28T10:13:52.196+08:00' and ts<'2016-07-28T10:13:52.644+08:00';
 ```

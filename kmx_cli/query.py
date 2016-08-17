@@ -136,10 +136,13 @@ def get_where(sql):
                     # tell ts format is timestamp or iso
                     if value.startswith("'") and value.endswith("'"):
                         id = 'iso'
+                        value = str(arrow.get(identify.strip_quotes(value))).replace("+", "%2B")
+                        if len(value) >= 32:
+                            value = value[0:23] + value[26:]
                     else:
                         id = 'timestamp'
 
-                    value = str(value).replace("'", "").replace("+","%2B")
+                    # value = str(value).replace("'", "").replace("+","%2B")
 
                     # If time is relative time
                     if value.upper().startswith('NOW'):
@@ -156,14 +159,14 @@ def get_where(sql):
         return pointQuery
     elif rangeQueryStart:
         if not rangeQueryEnd:
-            rangeQueryEnd.update({'iso': arrow.now().format('YYYY-MM-DDTHH:mm:ss.SSSZZ').replace("+","%2B")})
+            rangeQueryEnd.update({'iso': str(arrow.now()).replace("+", "%2B")})
         return rangeQuery
     elif rangeQueryEnd:
-        rangeQueryStart.update({'iso': arrow.get('1970-01-01T00:00:00.001Z').format('YYYY-MM-DDTHH:mm:ss.SSSZZ').replace("+","%2B")})
+        rangeQueryStart.update({'iso': str(arrow.get('1970-01-01T00:00:00.001Z')).replace("+", "%2B")})
         return rangeQuery
     else:
-        rangeQueryStart.update({'iso': arrow.get('1970-01-01T00:00:00.001Z').format('YYYY-MM-DDTHH:mm:ss.SSSZZ').replace("+","%2B")})
-        rangeQueryEnd.update({'iso': arrow.now().format('YYYY-MM-DDTHH:mm:ss.SSSZZ').replace("+","%2B")})
+        rangeQueryStart.update({'iso': str(arrow.get('1970-01-01T00:00:00.001Z')).replace("+", "%2B")})
+        rangeQueryEnd.update({'iso': str(arrow.now()).replace("+", "%2B")})
         return rangeQuery
 
 
