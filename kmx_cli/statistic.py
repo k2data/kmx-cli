@@ -75,6 +75,9 @@ def describe(payload, sensors):
 def hist(payload, sensors):
     data_frame = get_data_frame_data(payload, sensors)
     data_frame.hist(color='lightblue')
+    pylab.title('histogram')
+    pylab.xlabel('time')
+    pylab.ylabel('sensor value')
     pylab.show()
     pylab.close()
 
