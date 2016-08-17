@@ -159,14 +159,14 @@ def get_where(sql):
         return pointQuery
     elif rangeQueryStart:
         if not rangeQueryEnd:
-            rangeQueryEnd.update({'iso': str(arrow.now()).replace("+", "%2B")})
+            rangeQueryEnd.update({'iso': arrow.now().format('YYYY-MM-DDTHH:mm:ss.SSSZZ').replace("+", "%2B")})
         return rangeQuery
     elif rangeQueryEnd:
-        rangeQueryStart.update({'iso': str(arrow.get('1970-01-01T00:00:00.001Z')).replace("+", "%2B")})
+        rangeQueryStart.update({'iso': arrow.get('1970-01-01T00:00:00.001Z').format('YYYY-MM-DDTHH:mm:ss.SSSZZ').replace("+", "%2B")})
         return rangeQuery
     else:
-        rangeQueryStart.update({'iso': str(arrow.get('1970-01-01T00:00:00.001Z')).replace("+", "%2B")})
-        rangeQueryEnd.update({'iso': str(arrow.now()).replace("+", "%2B")})
+        rangeQueryStart.update({'iso': arrow.get('1970-01-01T00:00:00.001Z').format('YYYY-MM-DDTHH:mm:ss.SSSZZ').replace("+", "%2B")})
+        rangeQueryEnd.update({'iso': arrow.now().format('YYYY-MM-DDTHH:mm:ss.SSSZZ').replace("+", "%2B")})
         return rangeQuery
 
 
