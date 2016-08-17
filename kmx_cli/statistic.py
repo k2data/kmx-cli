@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import log
+
 try:
     import pandas
     import numpy
@@ -9,6 +9,7 @@ except:
     raise Exception('statistic dependy on pandas. but pandas does not install on your system.\n' + "try 'sudo apt-get instal -y python-pandas' to install it")
 
 from request import get
+import log
 
 
 def is_number(value):
@@ -52,7 +53,6 @@ def get_data(sensors, values):
     data = {}
     for sensor in sensors:
         data[sensor] = numpy.array(values[sensor])
-        # data[sensor] = numpy.array(values[sensor], data_type='float64')
     return data
 
 
@@ -60,10 +60,6 @@ def get_data_frame_data(payload, sensors):
     index, values = parse_payload(payload, sensors)
     data = get_data(sensors,values)
     data_frame = pandas.DataFrame(data=data, index=index, columns=sensors)
-    # for sensor in sensors:
-    #     data = data_frame[sensor]
-    #     data = data.apply(lambda value: numpy.NaN if value == float('inf') else value)
-    #     data_frame[sensor] = data_frame[data.notnull()]
     return data_frame
 
 
@@ -75,9 +71,8 @@ def describe(payload, sensors):
 def hist(payload, sensors):
     data_frame = get_data_frame_data(payload, sensors)
     data_frame.hist(color='lightblue')
-    pylab.title('histogram')
-    pylab.xlabel('time')
-    pylab.ylabel('sensor value')
+    # pylab.xlabel('sensor value')
+    # pylab.ylabel('distribution')
     pylab.show()
     pylab.close()
 
@@ -85,9 +80,9 @@ def hist(payload, sensors):
 def plot(payload, sensors):
     data_frame = get_data_frame_data(payload, sensors)
     data_frame.plot()
-    pylab.title('plot diagram')
-    pylab.xlabel('time')
-    pylab.ylabel('sensor value')
+    # pylab.title('plot diagram')
+    # pylab.xlabel('time')
+    # pylab.ylabel('sensor value')
     pylab.show()
     pylab.close()
 
