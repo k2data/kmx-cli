@@ -27,6 +27,7 @@ def parse_payload(payload, sensors):
         values[sensor] = []
 
     data_rows = payload['dataRows']
+
     for data_row in data_rows:
         ids = []
         if 'iso' in data_row:
@@ -71,16 +72,28 @@ def describe(payload, sensors):
     log.default(data_frame.describe())
 
 
+def hist(payload, sensors):
+    data_frame = get_data_frame_data(payload, sensors)
+    data_frame.hist(color='lightblue')
+    pylab.show()
+    pylab.close()
+
+
 def plot(payload, sensors):
     data_frame = get_data_frame_data(payload, sensors)
     data_frame.plot()
+    pylab.title('plot diagram')
+    pylab.xlabel('time')
+    pylab.ylabel('sensor value')
     pylab.show()
+    pylab.close()
 
 
 def box(payload, sensors):
     data_frame = get_data_frame_data(payload, sensors)
     data_frame.boxplot(return_type='dict')
     pylab.show()
+    pylab.close()
 
 
 def execute(payload, sensors, function):
@@ -90,8 +103,10 @@ def execute(payload, sensors, function):
         plot(payload, sensors)
     elif function == 'boxplot':
         box(payload, sensors)
+    elif function == 'hist':
+        hist(payload, sensors)
     else:
-        log.error("statistic do not support :" + function + '. Only support [describe, plot, boxplot]')
+        log.error("statistic do not support :" + function + '. Only support [describe, hist, plot, boxplot]')
 
 
 if __name__ == '__main__':
@@ -106,6 +121,6 @@ if __name__ == '__main__':
     response.close()
     sensor_ids = ["engineTemperature", "xx","enginRotate", "enginRotate","latitudeNum"]
 
-    describe(response_payload, sensor_ids)
+    # describe(response_payload, sensor_ids)
     plot(response_payload, sensor_ids)
-    box(response_payload, sensor_ids)
+    # box(response_payload, sensor_ids)
