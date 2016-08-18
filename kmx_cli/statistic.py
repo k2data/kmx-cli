@@ -110,15 +110,15 @@ def execute(payload, sensors, function):
 if __name__ == '__main__':
     url = 'http://192.168.130.2/cloud/qa3/kmx/v2/data/data-rows?' +\
           'select={"sources":{"device":"C30229_05",' + \
-          '"sensors":["engineTemperature","xx","enginRotate","latitudeNum"],' + \
+          '"sensors":["engineTemperature","xx","enginRotate","enginRotate","latitudeNum"],' + \
           '"timeRange":{"start":{"iso":"1970-01-01T00:00:00.001-00:00"},"end":{"iso":"2016-08-15T09:44:55.687%2B08:00"}}}}' + \
-          '&size=100'
+          '&size=20'
     import json
     response = get(url)
     response_payload = json.loads(response.text)
     response.close()
     sensor_ids = ["engineTemperature", "xx","enginRotate", "enginRotate","latitudeNum"]
 
-    # describe(response_payload, sensor_ids)
+    describe(response_payload, sensor_ids)
     plot(response_payload, sensor_ids)
-    # box(response_payload, sensor_ids)
+    box(response_payload, sensor_ids)
