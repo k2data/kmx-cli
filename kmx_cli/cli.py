@@ -76,7 +76,7 @@ import importor
 import create
 import update
 from identify import isDDL, isDML, isKeyword, isIdentifier, isIdentifierList
-from metadata import ddl_operations
+from drop import drop
 from query import dyn_query
 import show
 import log
@@ -87,7 +87,7 @@ def execute_ddl(url, statement):
     if start == 'create':
         create.create(url, statement)
     elif start == 'drop':
-        ddl_operations(url, statement)
+        drop(url, statement)
 
 
 def execute_dml(url, statement):
@@ -100,6 +100,7 @@ def execute_dml(url, statement):
 
 def transfer(url, statements):
     for statement in statements:
+        # print 'execute: ' + statement.value
         if str(statement).lstrip().strip().upper().startswith('SOURCE'):
             from batch import batch_exec
             batch_exec(url,statement)

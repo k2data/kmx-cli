@@ -119,7 +119,7 @@ def pretty_meta_list(payload, action, fmt='psql'):
         pretty_page(pages)
 
 
-def pretty_meta(dict_payload, path, fmt='psql'):
+def pretty_meta(dict_payload, payload_key, fmt='psql'):
     ''' create/query single device or device-types
         @path: deviceType, device
     '''
@@ -132,16 +132,18 @@ def pretty_meta(dict_payload, path, fmt='psql'):
     sensors = []
     headers = dict_payload.keys()
 
-    if path in dict_payload.keys():
-        payload = dict_payload[path]
+    payload = {}
+
+    if payload_key in dict_payload.keys():
+        payload = dict_payload[payload_key]
         sensors = payload.pop('sensors')
         headers = payload.keys()
 
-    for header in headers:
-        rows.append(json.dumps(payload[header], ensure_ascii=False))
-    result.append(tuple(rows))
+    if payload:
+        for header in headers:
+            rows.append(json.dumps(payload[header], ensure_ascii=False))
+        result.append(tuple(rows))
 
-    if sensors:
         sensor_rows = []
         keys = sensors[0].keys()
         if 'url' in keys:
@@ -152,5 +154,6 @@ def pretty_meta(dict_payload, path, fmt='psql'):
                 row.append(sensor[key])
             sensor_rows.append(tuple(row))
         draw_table(sensor_rows, keys, fmt)
-
+    else:
+        log.warn(json.dumps(dict_payload))
     draw_table(result, headers, fmt)

@@ -33,8 +33,10 @@ def parse_payload(payload, sensors):
         ids = []
         if 'iso' in data_row:
             index.append(data_row['iso'])
-        else:
+        elif 'timestamp' in data_row :
             index.append(data_row['timestamp'])
+        else:
+            return None,None
         data_points = data_row['dataPoints']
         for data_point in data_points:
             sensor = data_point['sensor']
@@ -58,9 +60,12 @@ def get_data(sensors, values):
 
 def get_data_frame_data(payload, sensors):
     index, values = parse_payload(payload, sensors)
-    data = get_data(sensors,values)
-    data_frame = pandas.DataFrame(data=data, index=index, columns=sensors)
-    return data_frame
+    if index and values:
+        data = get_data(sensors,values)
+        return pandas.DataFrame(data=data, index=index, columns=sensors)
+    else:
+        log.warn("query return 0 data point. skip statistic")
+        return
 
 
 def describe(payload, sensors):
@@ -70,28 +75,31 @@ def describe(payload, sensors):
 
 def hist(payload, sensors):
     data_frame = get_data_frame_data(payload, sensors)
-    data_frame.hist(color='lightblue')
-    # pylab.xlabel('sensor value')
-    # pylab.ylabel('distribution')
-    pylab.show()
-    pylab.close()
+    if data_frame:
+        data_frame.hist(color='lightblue')
+        # pylab.xlabel('sensor value')
+        # pylab.ylabel('distribution')
+        pylab.show()
+        pylab.close()
 
 
 def plot(payload, sensors):
     data_frame = get_data_frame_data(payload, sensors)
-    data_frame.plot()
-    # pylab.title('plot diagram')
-    # pylab.xlabel('time')
-    # pylab.ylabel('sensor value')
-    pylab.show()
-    pylab.close()
+    if data_frame:
+        data_frame.plot()
+        # pylab.title('plot diagram')
+        # pylab.xlabel('time')
+        # pylab.ylabel('sensor value')
+        pylab.show()
+        pylab.close()
 
 
 def box(payload, sensors):
     data_frame = get_data_frame_data(payload, sensors)
-    data_frame.boxplot(return_type='dict')
-    pylab.show()
-    pylab.close()
+    if data_frame:
+        data_frame.boxplot(return_type='dict')
+        pylab.show()
+        pylab.close()
 
 
 def execute(payload, sensors, function):
