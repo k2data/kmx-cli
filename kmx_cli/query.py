@@ -127,33 +127,30 @@ def get_where(sql):
                     comparisonTokens = token.tokens
                     for ctoken in comparisonTokens:
                         if isinstance(ctoken, Identifier):
-                            id = ctoken.value
+                            time_key = ctoken.value
                         elif ctoken.ttype is Comparison:
                             comp = ctoken.value
                         elif ctoken.ttype is not Whitespace:
                             value = ctoken.value
 
-                    # tell ts format is timestamp or iso
                     if value.startswith("'") and value.endswith("'"):
-                        id = 'iso'
-                        value = str(arrow.get(identify.strip_quotes(value))).replace("+", "%2B")
+                        time_key = 'iso'
+                        value = identify.strip_quotes(value)
+                        if value.upper().startswith('NOW'):
+                            value = relative_time_parser(value, 'iso')
+                        else:
+                            value = str(arrow.get()).replace("+", "%2B")
                         if len(value) >= 32:
                             value = value[0:23] + value[26:]
                     else:
-                        id = 'timestamp'
-
-                    # value = str(value).replace("'", "").replace("+","%2B")
-
-                    # If time is relative time
-                    if value.upper().startswith('NOW'):
-                        value = relative_time_parser(value, 'iso')
+                        time_key = 'timestamp'
 
                     if comp == '=':
-                        pointQueryValue.update({id: value})
+                        pointQueryValue.update({time_key: value})
                     elif comp == '>':
-                        rangeQueryStart.update({id: value})
+                        rangeQueryStart.update({time_key: value})
                     elif comp == '<':
-                        rangeQueryEnd.update({id: value})
+                        rangeQueryEnd.update({time_key: value})
 
     if pointQueryValue:
         return pointQuery

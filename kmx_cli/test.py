@@ -31,17 +31,18 @@ show devicetypes like gw*;
 select DOUBLE_dt_sync_02_dWavQ from device_sync_01_dWavQ where ts=1469672032196;
 
 select DOUBLE_dt_sync_02_dWavQ from device_sync_01_dWavQ where ts>1469672032196 and ts<1469672032644;
-select DOUBLE_dt_sync_02_dWavQ from device_sync_01_dWavQ where ts>'2016-07-28T10:13:52.196%2B08:00' and ts<'2016-07-28T10:13:52.644%2B08:00';
+select DOUBLE_dt_sync_02_dWavQ from device_sync_01_dWavQ where ts>'2016-07-28T10:13:52.196+08:00' and ts<'2016-07-28T10:13:52.644+08:00';
 select DOUBLE_dt_sync_02_dWavQ from device_sync_01_dWavQ where ts>'2016-07-28T10:13:52.196+08:00' and ts<'2016-07-28T10:13:52.644+08:00';
 
-select WCNVConver_chopper_igbt_temp,WCNVPwrReactInstMagf from GW150001 where iso > '2015-04-24T20:10:00.000%2B08:00' and iso < '2015-05-01T07:59:59.000%2B08:00';
+select WCNVConver_chopper_igbt_temp,WCNVPwrReactInstMagf from GW150001 where iso > '2015-04-24T20:10:00' and iso < '2015-05-01 07:59';
 select DOUBLE_dt_sync_02_dWavQ from device_sync_01_dWavQ where ts>'now-100w' and ts<'now';
 
 select describe(DOUBLE_dt_sync_02_dWavQ) from device_sync_01_dWavQ where ts=1469672032196;
 
 select describe(DOUBLE_dt_sync_02_dWavQ) from device_sync_01_dWavQ where ts>1469672032196 and ts<1469672032644;
-select line(DOUBLE_dt_sync_02_dWavQ) from device_sync_01_dWavQ where ts>'2016-07-28T10:13:52.196%2B08:00' and ts<'2016-07-28T10:13:52.644%2B08:00';
-select box(DOUBLE_dt_sync_02_dWavQ) from device_sync_01_dWavQ where ts>'2016-07-28T10:13:52.196+08:00' and ts<'2016-07-28T10:13:52.644+08:00';
+select hist(DOUBLE_dt_sync_02_dWavQ) from device_sync_01_dWavQ where ts>'2016-07-28T10:13:52.196+08:00' and ts<'2016-07-28T10:13:52.644+08:00';
+select plot(DOUBLE_dt_sync_02_dWavQ) from device_sync_01_dWavQ where ts>'2016-07-28T10:13:52.196+08:00' and ts<'2016-07-28T10:13:52.644+08:00';
+select boxplot(DOUBLE_dt_sync_02_dWavQ) from device_sync_01_dWavQ where ts>'2016-07-28T10:13:52.196+08:00' and ts<'2016-07-28T10:13:52.644+08:00';
 
 import testdata/test.csv into import_{device_type};
 import test.csv into import_{device_type};
@@ -50,21 +51,13 @@ import '../build/data.csv' into import_{device_type};
 
 update devicetype set tags =(x , xx , xxx), attributes = (k1 v1, "k2" v2) where id = "{device_type}";
 update device set deviceTypeId=update_{device_type}, tags =(x , xx , xxx), attributes = (k1 v1, "k2" v2) where id = "{device}";
+
+drop device xx;
+drop device {device};
+drop devicetype {device_type};
+
 eguiesdf;
 '''.format(device_type=device_type,device=device)
-
-
-sql = '''
-select DOUBLE_dt_sync_02_dWavQ from device_sync_01_dWavQ where ts=1469672032196;
-
-select DOUBLE_dt_sync_02_dWavQ from device_sync_01_dWavQ where ts>1469672032196 and ts<1469672032644;
-select DOUBLE_dt_sync_02_dWavQ from device_sync_01_dWavQ where ts>'2015-07-28T10:13:52-08:00' and ts<'2016-07-28T10:13:52-08:00';
-select DOUBLE_dt_sync_02_dWavQ from device_sync_01_dWavQ where ts>'2015-07-28T10:13:52+08:00' and ts<'2016-07-28T10:13:52.243+08:00';
-select DOUBLE_dt_sync_02_dWavQ from device_sync_01_dWavQ where ts>'2015-07-28T10:13:52+08:00' and ts<'2016-07-28 10:12';
-select DOUBLE_dt_sync_02_dWavQ from device_sync_01_dWavQ where ts>'2015-07-28 10:13';
-select DOUBLE_dt_sync_02_dWavQ from device_sync_01_dWavQ where ts>'2015-07-28T10:13';
-select DOUBLE_dt_sync_02_dWavQ from device_sync_01_dWavQ where ts>'2015-07-28 10:13+08:00';
-'''
 
 
 if __name__ == '__main__':

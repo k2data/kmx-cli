@@ -11,7 +11,7 @@ import time
 cur_dir = os.path.abspath(os.path.dirname(__file__))
 path = os.path.abspath(os.path.join(cur_dir, '../kmx_cli'))
 sys.path.append(path)
-import create,metadata,client,log
+import create,drop,client,log
 
 
 class Tester(unittest.TestCase):

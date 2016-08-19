@@ -7,7 +7,8 @@ from request import delete
 charset = 'utf-8'
 
 
-def drop_meta(url, statement):
+def drop(url, statement):
+    ids = ''
     tokens = statement.tokens
     if len(tokens) < 3 or tokens[0].value.strip().lower() != 'drop':
         log.error('Error: Syntax error ,please check your input.')
@@ -29,6 +30,7 @@ def drop_meta(url, statement):
 
     if len(params) > 1:
         ids = str(params[1])
+
     if ids.endswith(','):
         ids = ids[:-1]
 
@@ -47,4 +49,4 @@ if __name__ == '__main__':
     statements = sqlparse.parse('drop devicetype dt_dWnkm_N_000_inst_000,dt_dWnkm_N_000_inst_001,dt_dWnkm_N_000_inst_001,')
     for statement in statements:
         print statement
-        drop_meta('http://192.168.130.2/cloud/qa3/kmx/v2', statement)
+        drop('http://192.168.130.2/cloud/qa3/kmx/v2', statement)

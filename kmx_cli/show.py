@@ -74,8 +74,8 @@ def query_common(url, sub_url, idd, main_key, process_func, page=None, size=None
         if size: url = '%s&size=%s'%(url, size)
     response = get(url)
     resopnse_payload = json.loads(response.text)
-    # output as text table
     process_func(resopnse_payload, main_key)
+
 
 def make_re_replace_func(regex_patt=r'[\'"*%_]{1}'):
     ''' form a function to do my replacement '''
