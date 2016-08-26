@@ -23,6 +23,7 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
+metadata.py
 synchronize.sh*
 
 # PyInstaller

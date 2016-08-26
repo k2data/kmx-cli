@@ -56,9 +56,18 @@ drop device xx;
 drop device {device};
 drop devicetype {device_type};
 
+drop device 1x;
+drop devicetype 1x;
+
 eguiesdf;
 '''.format(device_type=device_type,device=device)
 
+sql = '''
+select describe(s1,s2,s3) from test_import;
+select hist(s1,s2,s3) from test_import;
+select plot(s1,s2,s3) from test_import;
+select boxplot(s1,s2,s3) from test_import;
+'''
 
 if __name__ == '__main__':
     statements = sqlparse.parsestream(sql.replace('\n', ''), 'utf-8')

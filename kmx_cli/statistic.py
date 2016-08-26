@@ -6,7 +6,7 @@ try:
     import numpy
     import pylab
 except:
-    raise Exception('statistic dependy on pandas. but pandas does not install on your system.\n' + "try 'sudo apt-get instal -y python-pandas' to install it")
+    raise Exception('statistic dependy on pandas. but pandas does not install on your system.\n' + "try 'sudo apt-get install -y python-pandas' to install it")
 
 from request import get
 import log
@@ -75,31 +75,39 @@ def describe(payload, sensors):
 
 def hist(payload, sensors):
     data_frame = get_data_frame_data(payload, sensors)
-    if data_frame:
-        data_frame.hist(color='lightblue')
-        # pylab.xlabel('sensor value')
-        # pylab.ylabel('distribution')
-        pylab.show()
-        pylab.close()
+    data_frame.hist(color='lightblue')
+    pylab.show()
+    pylab.close()
+    # if data_frame:
+    #     data_frame.hist(color='lightblue')
+    #     # pylab.xlabel('sensor value')
+    #     # pylab.ylabel('distribution')
+    #     pylab.show()
+    #     pylab.close()
 
 
 def plot(payload, sensors):
     data_frame = get_data_frame_data(payload, sensors)
-    if data_frame:
-        data_frame.plot()
+    data_frame.plot()
+    pylab.show()
+    pylab.close()
+    # if data_frame:
+    #     data_frame.plot()
         # pylab.title('plot diagram')
         # pylab.xlabel('time')
         # pylab.ylabel('sensor value')
-        pylab.show()
-        pylab.close()
+
 
 
 def box(payload, sensors):
     data_frame = get_data_frame_data(payload, sensors)
-    if data_frame:
-        data_frame.boxplot(return_type='dict')
-        pylab.show()
-        pylab.close()
+    data_frame.boxplot(return_type='dict')
+    pylab.show()
+    pylab.close()
+    # if data_frame:
+    #     data_frame.boxplot(return_type='dict')
+    #     pylab.show()
+    #     pylab.close()
 
 
 def execute(payload, sensors, function):
