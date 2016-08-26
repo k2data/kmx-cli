@@ -27,9 +27,9 @@ is build to provide developers a easy to use tool.
 For above RESTFul query, in kmx-cli, it's like below:
 ```
 select
-    device_name
-from
     sensor_name
+from
+    device_name
 where
     ts=1469672032196
 ```
@@ -60,9 +60,9 @@ http://192.168.130.2/cloud/qa3/kmx/v2/data/data-points?
 kmx-cli style is:
 ```
 select
-    device_name
-from
     sensor_name
+from
+    device_name
 where
     ts>'2016-07-28T10:13:52.196+08:00'
 and
