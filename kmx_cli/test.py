@@ -56,6 +56,9 @@ drop device xx;
 drop device {device};
 drop devicetype {device_type};
 
+drop device 1x;
+drop devicetype 1x;
+
 eguiesdf;
 '''.format(device_type=device_type,device=device)
 
