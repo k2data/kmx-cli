@@ -101,7 +101,8 @@ def plot(payload, sensors):
 
 def box(payload, sensors):
     data_frame = get_data_frame_data(payload, sensors)
-    data_frame.boxplot(return_type='dict')
+    # data_frame.boxplot(return_type='dict')
+    data_frame.boxplot()
     pylab.show()
     pylab.close()
     # if data_frame:
