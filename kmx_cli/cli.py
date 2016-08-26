@@ -103,7 +103,7 @@ def transfer(url, statements):
         # print 'execute: ' + statement.value
         if str(statement).lstrip().strip().upper().startswith('SOURCE'):
             from batch import batch_exec
-            batch_exec(url,statement)
+            batch_exec(url, statement)
         elif isDML(statement):
             execute_dml(url, statement)
         elif isDDL(statement):
