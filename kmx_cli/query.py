@@ -206,50 +206,87 @@ def dyn_query(url, dml):
     sources[key] = value
     select = {"sources": sources}
 
-    # page and size
-    page, size = get_page_size(dml)
-    page_size = ''
-    if page:
-        page_size += '&page=' + str(page)
+    pages, size = get_page_size(dml)
+
+    uri = url + '/data/' + query_url + '?select=' + json.dumps(select)
     if size:
-        page_size += '&size=' + str(size)
+        uri += '&size=' + str(size)
 
-    if page_size:
-        uri = url + '/data/' + query_url + '?select=' + json.dumps(select) + page_size
-    else:
-        uri = url + '/data/' + query_url + '?select=' + json.dumps(select)
-    log.primary(uri)
-    print
+    do_query(dml, uri, pages, is_statistic)
 
-    start_time = timeit.default_timer()
-    response = get(uri)
-    response.close()
-    elapsed = timeit.default_timer() - start_time
+
+def merge(old, new):
+    if not old:
+        return new
+    if not new:
+        return old
+    size = new['pageInfo']['size']
+    if size > 0:
+        rows = new['dataRows']
+        for row in rows:
+            old['dataRows'].append(row)
+        # old['dataRows'].extend[rows]
+        old['pageInfo']['size'] = old['pageInfo']['size'] + size
+        return old
+
+
+def query_one_page(url):
+    log.primary(url)
+    response = get(url)
     rc = response.status_code
+    response.close()
+
     if rc != 200:
         log.error('Code: ' + str(rc))
         log.error(response.text)
+        return
     else:
-        payload = json.loads(response.text)
-        into, path = get_into(dml)
+        return json.loads(response.text)
 
-        if into:
-            if path:
-                pretty_data_query(payload,fmt='csv', path=identify.strip_quotes(path))
-            else:
-                log.error("Syntax error after : " + into + '. Should follow a file path.')
+
+def do_query(dml, url, pages, is_statistic):
+    start_time = timeit.default_timer()
+    payload = {}
+    if pages:
+        pages = pages.split(',')
+        if len(pages) == 1:
+            uri = url + '&page=' + str(pages[0])
+            payload = query_one_page(uri)
+        elif len(pages) == 2:
+            start, end = int(pages[0].strip()), int(pages[1].strip())
+            if start > end:
+                log.error("start page must less than end page")
+                return
+            while start <= end:
+                uri = url + '&page=' + str(start)
+                payload = merge(payload, query_one_page(uri))
+                start += 1
         else:
-            pretty_data_query(payload,fmt='psql', path=path)
+            log.error("to many page params...")
+            return
+    else:
+        payload = query_one_page(url)
+    elapsed = timeit.default_timer() - start_time
 
-        log.default('Returned in %.2f s' % elapsed)
+    into, path = get_into(dml)
+    if into:
+        if path:
+            pretty_data_query(payload, fmt='csv', path=identify.strip_quotes(path))
+        else:
+            log.error("Syntax error after : " + into + '. Should follow a file path.')
+    else:
+        pretty_data_query(payload, fmt='psql', path=path)
 
-        if is_function:
-            if is_statistic:
-                import statistic
-                print
-                statistic.execute(payload, sensors, function)
-            else:
-                log.error("data point query does not suppurt statistic")
+    log.default('Returned in %.2f s' % elapsed)
+
+    is_function, sensors, function = get_sensors(dml)
+    if is_function:
+        if is_statistic:
+            import statistic
+            print
+            statistic.execute(payload, sensors, function)
+        else:
+            log.error("data point query does not suppurt statistic")
 
 
 def get_page_size(sql):
