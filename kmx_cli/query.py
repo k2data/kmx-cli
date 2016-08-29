@@ -215,7 +215,7 @@ def dyn_query(url, dml):
     uri = url + '/data/' + query_url + '?select=' + json.dumps(select)
     limits = get_limit(dml)
 
-    do_query(dml, uri, page, size, limits, is_statistic, sensors, is_function, sensors, function)
+    do_query(dml, uri, page, size, limits, is_statistic, sensors, is_function, function)
 
 
 def merge(old, new):
@@ -262,10 +262,10 @@ def query_one_page(url):
         return json.loads(response.text)
 
 
-def do_query(dml, url, size, page, limits, is_statistic, sensors, is_function, sensor, function):
+def do_query(dml, url, size, page, limits, is_statistic, sensors, is_function, function):
     start_time = timeit.default_timer()
     payload = {}
-    uri = '';
+
     if limits and limits[0] and len(limits) == 2:
         limit_pages = int(limits[1]) / limit_size
         remainder = int(limits[1]) % limit_size
@@ -289,6 +289,7 @@ def do_query(dml, url, size, page, limits, is_statistic, sensors, is_function, s
                 last_payload = query_one_page(uri)
                 payload = merge_last(payload, last_payload, remainder)
     else:
+        uri = url
         if page:
             uri = url + '&page=%s' % page
         if size:
@@ -355,7 +356,7 @@ def get_sensors_by_device(url, device_id):
 
 if __name__ == '__main__':
     import sqlparse
-    statements = sqlparse.parsestream('select descs(s1 ,s2) from device where ts > 1 limit 11;select s1 ,s2 from device where ts > 1 page 2 size 3 limit 22', 'utf-8')
+    statements = sqlparse.parsestream('select descs(s1 ,s2) from device where ts = 1 limit 11;select s1 ,s2 from device where ts > 1 page 2 size 3 limit 22', 'utf-8')
     for statement in statements:
         print get_limit(statement)
         print get_sensors('http://192.168.130.2/cloud/qa3/kmx/v2', statement)

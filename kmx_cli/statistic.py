@@ -75,7 +75,7 @@ def describe(payload, sensors):
 
 def hist(payload, sensors):
     data_frame = get_data_frame_data(payload, sensors)
-    if not data_frame.empty:
+    if data_frame is not None and not data_frame.empty:
         data_frame.hist(color='lightblue')
         # pylab.xlabel('sensor value')
         # pylab.ylabel('distribution')
@@ -85,7 +85,7 @@ def hist(payload, sensors):
 
 def plot(payload, sensors):
     data_frame = get_data_frame_data(payload, sensors)
-    if not data_frame.empty:
+    if data_frame is not None and not data_frame.empty:
         data_frame.plot()
         pylab.title('plot diagram')
         pylab.xlabel('time')
@@ -95,7 +95,7 @@ def plot(payload, sensors):
 
 def box(payload, sensors):
     data_frame = get_data_frame_data(payload, sensors)
-    if not data_frame.empty:
+    if data_frame is not None and not data_frame.empty:
         # data_frame.boxplot(return_type='dict')
         data_frame.boxplot()
         pylab.show()
