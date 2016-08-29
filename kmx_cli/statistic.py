@@ -5,6 +5,7 @@ try:
     import pandas
     import numpy
     import pylab
+    import matplotlib.pyplot as plt
 except:
     raise Exception('statistic dependy on pandas. but pandas does not install on your system.\n' + "try 'sudo apt-get install -y python-pandas' to install it")
 
@@ -18,6 +19,13 @@ def is_number(value):
         return True
     except:
         return False
+
+
+def not_empty(lists):
+    for x in lists:
+        if x:
+            return True
+    return False
 
 
 def parse_payload(payload, sensors):
@@ -35,7 +43,7 @@ def parse_payload(payload, sensors):
         elif 'timestamp' in data_row :
             index.append(data_row['timestamp'])
         else:
-            return None,None
+            return None, None
         data_points = data_row['dataPoints']
         for data_point in data_points:
             sensor = data_point['sensor']
@@ -61,18 +69,20 @@ def get_data(sensors, values):
 def get_data_frame_data(payload, sensors):
     index, values = parse_payload(payload, sensors)
     if index and values:
-        data = get_data(sensors,values)
+        data = get_data(sensors, values)
         return pandas.DataFrame(data=data, index=index, columns=sensors)
     else:
         log.warn("query return 0 data point. skip statistic")
         return
 
 
+# 快速地算出了均值、标准差、最小和最大值
 def describe(payload, sensors):
     data_frame = get_data_frame_data(payload, sensors)
     log.default(data_frame.describe())
 
 
+# 直方图
 def hist(payload, sensors):
     data_frame = get_data_frame_data(payload, sensors)
     if data_frame is not None and not data_frame.empty:
@@ -83,6 +93,16 @@ def hist(payload, sensors):
         pylab.close()
 
 
+# 直方图
+def histf(payload, sensors):
+    data_frame = get_data_frame_data(payload, sensors)
+    if data_frame is not None and not data_frame.empty:
+        data_frame.hist(color='lightblue', normed=True)
+        pylab.show()
+        pylab.close()
+
+
+# plot折线图
 def plot(payload, sensors):
     data_frame = get_data_frame_data(payload, sensors)
     if data_frame is not None and not data_frame.empty:
@@ -103,6 +123,112 @@ def boxplot(payload, sensors):
         pylab.close()
 
 
+# 散列图scatter
+def scatter(payload, sensors):
+    """
+    scatter()所绘制的散列图可以指定每个点的颜色和大小。
+    scatter()的前两个参数是数组，分别指定每个点的X轴和Y轴的坐标。
+    s参数指定点的大 小，值和点的面积成正比。它可以是一个数，指定所有点的大小；也可以是数组，分别对每个点指定大小。
+    c参数指定每个点的颜色，可以是数值或数组。这里使用一维数组为每个点指定了一个数值。通过颜色映射表，每个数值都会与一个颜色相对应。默认的颜色映射表中蓝色与最小值对应，红色与最大值对应。当c参数是形状为(N,3)或(N,4)的二维数组时，则直接表示每个点的RGB颜色。
+    marker参数设置点的形状，可以是个表示形状的字符串，也可以是表示多边形的两个元素的元组，第一个元素表示多边形的边数，第二个元素表示多边形的样式，取值范围为0、1、2、3。0表示多边形，1表示星形，2表示放射形，3表示忽略边数而显示为圆形。
+    alpha参数设置点的透明度。
+    lw参数设置线宽，lw是line width的缩写。
+    facecolors参数为“none”时，表示散列点没有填充色
+    """
+    index, values = parse_payload(payload, sensors)
+    if index and values:
+        datas = get_data(sensors, values)
+        if datas:
+            x = datas[sensors[0]]
+            n = len(datas)
+            fig, axes = plt.subplots(1, n - 1, figsize=(24, 8))
+
+            for index in range(1, n):
+                y = datas[sensors[index]]
+                # area = numpy.pi * (5 * numpy.random.rand(n - 1))**2 # 0 to 10 point radiuses
+                # color = (numpy.linspace(0, 1, n-1), numpy.linspace(0, 1, n-1))
+                # axes[index].scatter(sensor, y, s=area, c=color, alpha=0.5, cmap=plt.cm.hsv)
+                axes[index-1].scatter(x, y, alpha=0.5, cmap=plt.cm.hsv)
+            plt.show()
+            plt.close()
+        else:
+            log.warn("query return 0 data point. skip statistic")
+            return
+
+
+# 梯形图step()
+def step(payload, sensors):
+    index, values = parse_payload(payload, sensors)
+    if index and values:
+        datas = get_data(sensors, values)
+        if datas:
+            x = datas[sensors[0]]
+            n = len(datas)
+            fig, axes = plt.subplots(1, n - 1, figsize=(24, 8))
+            for index in range(1, n):
+                y = datas[sensors[index]]
+                axes[index-1].step(x, y, lw=1, alpha=0.8)
+            plt.show()
+            plt.close()
+        else:
+            log.warn("query return 0 data point. skip statistic")
+            return
+
+
+# 柱状图bar()
+def bar(payload, sensors):
+    """
+    用每根柱子的长度表示值的大小，它们通常用来比较两组或多组值。
+    bar()的第一个参数为每根柱子左边缘的横坐标;第二个参数为每根柱子的高度;第三个参数指定所有柱子的宽度,当第三个参数为序列时，可以为每根柱子指定宽度。bar()不自动修改颜色。
+    """
+    index, values = parse_payload(payload, sensors)
+    if index and values:
+        datas = get_data(sensors, values)
+        if datas:
+            x = datas[sensors[0]]
+            if not not_empty(x):
+                log.error('the reference sensor:<' + sensors[0] + '> has no datas or unregistered')
+                return
+
+            n = len(datas)
+            fig, axes = plt.subplots(1, n - 1, figsize=(24, 8))
+
+            for index in range(1, n):
+                y = datas[sensors[index]]
+                if not_empty(y):
+                    axes[index-1].bar(x, y, align="center", width=1.0/n, alpha=0.5)
+            plt.show()
+            plt.close()
+        else:
+            log.warn("query return 0 data point. skip statistic")
+            return
+
+
+# 填充图
+def fill_between(payload, sensors):
+    index, values = parse_payload(payload, sensors)
+    if index and values:
+        datas = get_data(sensors, values)
+        if datas:
+            x = datas[sensors[0]]
+            if not not_empty(x):
+                log.error('the reference sensor:<' + sensors[0] + '> has no datas or unregistered')
+                return
+
+            n = len(datas)
+            fig, axes = plt.subplots(1, n - 1, figsize=(24, 8))
+
+            for index in range(1, n):
+                y = datas[sensors[index]]
+                if not_empty(y):
+                    axes[index-1].fill_between(x, y, color="green", alpha=0.5)
+            plt.show()
+            plt.close()
+        else:
+            log.warn("query return 0 data point. skip statistic")
+            return
+
+
 def execute(payload, sensors, function):
     if function == 'describe':
         describe(payload, sensors)
@@ -112,28 +238,37 @@ def execute(payload, sensors, function):
         boxplot(payload, sensors)
     elif function == 'hist':
         hist(payload, sensors)
+    elif function == 'histf':
+        histf(payload, sensors)
+    elif function == 'scatter':
+        scatter(payload, sensors)
+    elif function == 'step':
+        step(payload, sensors)
+    elif function == 'bar':
+        bar(payload, sensors)
+    elif function == 'fill':
+        fill_between(payload, sensors)
     else:
-        log.error("statistic do not support :" + function + '. Only support [describe, hist, plot, boxplot]')
+        log.error("statistic do not support :" + function + '. Only support [describe, hist, histf, plot, boxplot, scatter, step, bar, fill]')
 
 
 if __name__ == '__main__':
-    url = 'http://192.168.130.2/cloud/qa3/kmx/v2/data/data-rows?' +\
-          'select={"sources":{"device":"C30229_05",' + \
-          '"sensors":["engineTemperature","xx","enginRotate","enginRotate","latitudeNum"],' + \
-          '"timeRange":{"start":{"iso":"1970-01-01T00:00:00.001-00:00"},"end":{"iso":"2016-08-15T09:44:55.687%2B08:00"}}}}' + \
-          '&size=20'
-    url = 'http://192.168.130.2/cloud/qa3/kmx/v2/data/data-rows?' +\
-          'select={"sources": {"device": "device_async_02_ZnMix", ' +\
-          '"sensors": ["sensor_DOUBLE", "sensor_BOOLEAN", "sensor_FLOAT", "sensor_INT", "sensor_LONG", "sensor_STRING"], ' +\
-          '"timeRange": {"start": {"iso": "1970-01-01T00:00:00.001-00:00"}, "end": {"iso": "2016-08-29T10:30:43.195%2B08:00"}}}}' +\
-          '&page=3&size=100'
-    import json
-    response = get(url)
-    response_payload = json.loads(response.text)
-    response.close()
-    sensor_ids = ["engineTemperature", "xx", "enginRotate", "enginRotate", "latitudeNum"]
-    sensor_ids = ["sensor_DOUBLE", "sensor_BOOLEAN", "sensor_FLOAT", "sensor_INT", "sensor_LONG", "sensor_STRING"]
+    import cli
+    import sqlparse
 
-    # describe(response_payload, sensor_ids)
-    plot(response_payload, sensor_ids)
-    # boxplot(response_payload, sensor_ids)
+    device = 'GW150008'
+    sensors = ['WCNVConver_setup_igbt2', 'WCNVConver_chopper_igbt_temp', 'xxx', 'WCNVConver_generator_capacitorstmpf', 'WCNVConver_setup_igbt1', 'WCNVConver_setup_igbt3', 'WCNVHzInstMagf']
+
+    sqls = ['select describe({sensors}) from {device}',
+            'select hist({sensors}) from {device}',
+            'select histf({sensors}) from {device}',
+            'select plot({sensors}) from {device}',
+            'select boxplot({sensors}) from {device}',
+            'select scatter({sensors}) from {device}',
+            'select bar({sensors}) from {device}',
+            'select step({sensors}) from {device}',
+            'select fill({sensors}) from {device}']
+
+    for sql in sqls:
+        statements = sqlparse.parsestream(sql.format(sensors=','.join(sensors), device=device), 'utf-8')
+        cli.transfer('http://192.168.130.2/cloud/qa3/kmx/v2', statements)

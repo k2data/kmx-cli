@@ -249,17 +249,17 @@ def merge_last(payload, last_payload, remainder):
 
 
 def query_one_page(url):
+    payload = None
     log.primary(url)
     response = get(url)
     rc = response.status_code
-    response.close()
-
     if rc != 200:
         log.error('Code: ' + str(rc))
         log.error(response.text)
-        return
     else:
-        return json.loads(response.text)
+        payload = json.loads(response.text)
+    response.close()
+    return payload
 
 
 def do_query(dml, url, size, page, limits, is_statistic, sensors, is_function, function):
@@ -298,23 +298,24 @@ def do_query(dml, url, size, page, limits, is_statistic, sensors, is_function, f
     elapsed = timeit.default_timer() - start_time
 
     into, path = get_into(dml)
-    if into:
-        if path:
-            pretty_data_query(payload, fmt='csv', path=identify.strip_quotes(path))
+    if payload:
+        if into:
+            if path:
+                pretty_data_query(payload, fmt='csv', path=identify.strip_quotes(path))
+            else:
+                log.error("Syntax error after : " + into + '. Should follow a file path.')
         else:
-            log.error("Syntax error after : " + into + '. Should follow a file path.')
-    else:
-        pretty_data_query(payload, fmt='psql', path=path)
+            pretty_data_query(payload, fmt='psql', path=path)
 
-    log.default('Returned in %.2f s' % elapsed)
+        log.default('Returned in %.2f s' % elapsed)
 
-    if is_function:
-        if is_statistic:
-            import statistic
-            print
-            statistic.execute(payload, sensors, function)
-        else:
-            log.error("data point query does not suppurt statistic")
+        if is_function:
+            if is_statistic:
+                import statistic
+                print
+                statistic.execute(payload, sensors, function)
+            else:
+                log.error("data point query does not suppurt statistic")
 
 
 def get_page_size(sql):
@@ -349,7 +350,7 @@ def get_sensors_by_device(url, device_id):
         for sensor in sensors_list:
             sensor_ids.append(sensor['id'])
     else:
-        log.warn(payload = response.text)
+        log.warn(response.text)
     response.close()
     return sensor_ids
 
