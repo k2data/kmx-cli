@@ -166,7 +166,7 @@ def find_next_token(sql, lambda_func):
     return source_token,target
 
 
-def find_next_token_util_stop_sign(sql, lambda_func, stop_sign):
+def find_next_token_util_stop_sign(sql, lambda_func, offset, stop_sign):
     '''
     import sqlparse
     from sqlparse.tokens import Literal
@@ -186,11 +186,11 @@ def find_next_token_util_stop_sign(sql, lambda_func, stop_sign):
         source_token = tokens.token_matching(lambda_func, 0)
         if source_token:
             source_idx = tokens.token_index(source_token, 0)
-            start = source_idx + 1
+            start = source_idx + 1 + offset
             # find = True
             from sqlparse.tokens import Whitespace
             target = []
-            while tokens[start].value.upper() not in (sign.upper() for sign in stop_sign_list) or tokens[start].ttype is Whitespace:
+            while tokens[start].value.upper() not in (sign.strip().upper() for sign in stop_sign_list) or tokens[start].ttype is Whitespace:
                 # if start <= len(list(tokens)) - 1:
                 if tokens[start].ttype is not Whitespace:
                     target.append(tokens[start].value)
@@ -214,10 +214,19 @@ def find_next_token_util_stop_sign(sql, lambda_func, stop_sign):
 if __name__ == '__main__':
     import sqlparse
     # parsed = sqlparse.parse("select longitudeNum,T1,T2 from C2063B where ts>'now-3d' and ts < 'now' size 30 page 2 size 10 limit 11")
-    parsed = sqlparse.parse("select longitudeNum,T1,T2 from C2063B")
-    source,target = find_next_token(parsed[0], lambda t: t.value.upper() == 'C2063B')
+    parsed = sqlparse.parse("select longitudeNum,T1,T2 from C2063B order by time desc limit 2")
+    print parsed[0].tokens
+    source,target = find_next_token(parsed[0], lambda t: t.value.upper() == 'ORDER')
     print source
     print target
-    source1,target1 = find_next_token_util_stop_sign(parsed[0], lambda t: t.value.upper() == 'FROM', "where,100")
+    source1,target1 = find_next_token_util_stop_sign(parsed[0], lambda t: t.value.upper() == 'FROM', 0, "where,100")
     print source1
     print target1
+
+    p = sqlparse.parse('select * from foo order by c1 desc, c2, c3 limit 1')[0]
+    # print p.tokens
+    # ids = list(p.tokens[-1].get_identifiers())
+    # print ids
+    # orderbylist = find_next_token_by_ttype(p, lambda t: t.value.upper() == 'ORDER', IdentifierList)
+    orderby = find_next_token_util_stop_sign(p, lambda t: t.value.upper() == 'ORDER', 2, "limit ,page ,size,into")
+    print orderby
