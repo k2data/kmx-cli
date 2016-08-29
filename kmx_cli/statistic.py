@@ -88,12 +88,13 @@ def plot(payload, sensors):
     if data_frame is not None and not data_frame.empty:
         data_frame.plot()
         pylab.title('plot diagram')
-        pylab.xlabel('time')
-        pylab.ylabel('sensor value')
+        pylab.xlabel('sensor')
+        pylab.ylabel('value')
+        pylab.show()
+        pylab.close()
 
 
-
-def box(payload, sensors):
+def boxplot(payload, sensors):
     data_frame = get_data_frame_data(payload, sensors)
     if data_frame is not None and not data_frame.empty:
         # data_frame.boxplot(return_type='dict')
@@ -108,7 +109,7 @@ def execute(payload, sensors, function):
     elif function == 'plot':
         plot(payload, sensors)
     elif function == 'boxplot':
-        box(payload, sensors)
+        boxplot(payload, sensors)
     elif function == 'hist':
         hist(payload, sensors)
     else:
@@ -127,13 +128,12 @@ if __name__ == '__main__':
           '"timeRange": {"start": {"iso": "1970-01-01T00:00:00.001-00:00"}, "end": {"iso": "2016-08-29T10:30:43.195%2B08:00"}}}}' +\
           '&page=3&size=100'
     import json
-    print is_number('0.0')
     response = get(url)
     response_payload = json.loads(response.text)
     response.close()
     sensor_ids = ["engineTemperature", "xx", "enginRotate", "enginRotate", "latitudeNum"]
     sensor_ids = ["sensor_DOUBLE", "sensor_BOOLEAN", "sensor_FLOAT", "sensor_INT", "sensor_LONG", "sensor_STRING"]
 
-    describe(response_payload, sensor_ids)
+    # describe(response_payload, sensor_ids)
     plot(response_payload, sensor_ids)
-    box(response_payload, sensor_ids)
+    # boxplot(response_payload, sensor_ids)
