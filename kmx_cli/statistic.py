@@ -110,6 +110,8 @@ def plot(payload, sensors):
         pylab.title('plot diagram')
         pylab.xlabel('sensor')
         pylab.ylabel('value')
+        pylab.grid(axis='x', alpha=0.8)
+        # pylab.yticks(numpy.array(range(len(sensors))), tuple(sensors))
         pylab.show()
         pylab.close()
 
@@ -143,12 +145,20 @@ def scatter(payload, sensors):
             n = len(datas)
             fig, axes = plt.subplots(1, n - 1, figsize=(24, 8))
 
-            for index in range(1, n):
-                y = datas[sensors[index]]
-                # area = numpy.pi * (5 * numpy.random.rand(n - 1))**2 # 0 to 10 point radiuses
-                # color = (numpy.linspace(0, 1, n-1), numpy.linspace(0, 1, n-1))
-                # axes[index].scatter(sensor, y, s=area, c=color, alpha=0.5, cmap=plt.cm.hsv)
-                axes[index-1].scatter(x, y, alpha=0.5, cmap=plt.cm.hsv)
+            if n <= 1:
+                log.error('the contrast sensors must be more than one, but got [ %s ]' % ','.join(sensors))
+                return
+            elif n == 2:
+                y = datas[sensors[1]]
+                if not_empty(y):
+                    axes.scatter(x, y, alpha=0.5, cmap=plt.cm.hsv)
+            else:
+                for index in range(1, n):
+                    y = datas[sensors[index]]
+                    # area = numpy.pi * (5 * numpy.random.rand(n - 1))**2 # 0 to 10 point radiuses
+                    # color = (numpy.linspace(0, 1, n-1), numpy.linspace(0, 1, n-1))
+                    # axes[index].scatter(sensor, y, s=area, c=color, alpha=0.5, cmap=plt.cm.hsv)
+                    axes[index-1].scatter(x, y, alpha=0.5, cmap=plt.cm.hsv)
             plt.show()
             plt.close()
         else:
@@ -165,9 +175,18 @@ def step(payload, sensors):
             x = datas[sensors[0]]
             n = len(datas)
             fig, axes = plt.subplots(1, n - 1, figsize=(24, 8))
-            for index in range(1, n):
-                y = datas[sensors[index]]
-                axes[index-1].step(x, y, lw=1, alpha=0.8)
+
+            if n <= 1:
+                log.error('the contrast sensors must be more than one, but got [ %s ]' % ','.join(sensors))
+                return
+            elif n == 2:
+                y = datas[sensors[1]]
+                if not_empty(y):
+                    axes.step(x, y, lw=1, alpha=0.8)
+            else:
+                for index in range(1, n):
+                    y = datas[sensors[index]]
+                    axes[index-1].step(x, y, lw=1, alpha=0.8)
             plt.show()
             plt.close()
         else:
@@ -193,10 +212,18 @@ def bar(payload, sensors):
             n = len(datas)
             fig, axes = plt.subplots(1, n - 1, figsize=(24, 8))
 
-            for index in range(1, n):
-                y = datas[sensors[index]]
+            if n <= 1:
+                log.error('the contrast sensors must be more than one, but got [ %s ]' % ','.join(sensors))
+                return
+            elif n == 2:
+                y = datas[sensors[1]]
                 if not_empty(y):
-                    axes[index-1].bar(x, y, align="center", width=1.0/n, alpha=0.5)
+                    axes.bar(x, y, align="center", width=1.0/n, alpha=0.5)
+            else:
+                for index in range(1, n):
+                    y = datas[sensors[index]]
+                    if not_empty(y):
+                        axes[index - 1].bar(x, y, align="center", width=1.0/n, alpha=0.5)
             plt.show()
             plt.close()
         else:
@@ -218,10 +245,18 @@ def fill_between(payload, sensors):
             n = len(datas)
             fig, axes = plt.subplots(1, n - 1, figsize=(24, 8))
 
-            for index in range(1, n):
-                y = datas[sensors[index]]
+            if n <= 1:
+                log.error('the contrast sensors must be more than one, but got [ %s ]' % ','.join(sensors))
+                return
+            elif n == 2:
+                y = datas[sensors[1]]
                 if not_empty(y):
-                    axes[index-1].fill_between(x, y, color="green", alpha=0.5)
+                    axes.fill_between(x, y, color="green", alpha=0.5)
+            else:
+                for index in range(1, n):
+                    y = datas[sensors[index]]
+                    if not_empty(y):
+                        axes[index-1].fill_between(x, y, color="green", alpha=0.5)
             plt.show()
             plt.close()
         else:
@@ -257,18 +292,23 @@ if __name__ == '__main__':
     import sqlparse
 
     device = 'GW150008'
-    sensors = ['WCNVConver_setup_igbt2', 'WCNVConver_chopper_igbt_temp', 'xxx', 'WCNVConver_generator_capacitorstmpf', 'WCNVConver_setup_igbt1', 'WCNVConver_setup_igbt3', 'WCNVHzInstMagf']
-
-    sqls = ['select describe({sensors}) from {device}',
-            'select hist({sensors}) from {device}',
-            'select histf({sensors}) from {device}',
-            'select plot({sensors}) from {device}',
-            'select boxplot({sensors}) from {device}',
-            'select scatter({sensors}) from {device}',
-            'select bar({sensors}) from {device}',
-            'select step({sensors}) from {device}',
-            'select fill({sensors}) from {device}']
-
+    # sensors = ['WCNVConver_setup_igbt2', 'WCNVConver_chopper_igbt_temp', 'xxx', 'WCNVConver_generator_capacitorstmpf', 'WCNVConver_setup_igbt1', 'WCNVConver_setup_igbt3', 'WCNVHzInstMagf']
+    sensors = ['WCNVConver_setup_igbt2', 'WCNVConver_chopper_igbt_temp']
+    #
+    sqls = ['select describe({sensors}) from {device} limit 286',
+            'select hist({sensors}) from {device}  limit 286',
+            'select histf({sensors}) from {device}  limit 286',
+            'select plot({sensors}) from {device}  limit 286',
+            'select boxplot({sensors}) from {device}  limit 286',
+            'select scatter({sensors}) from {device}  limit 286',
+            'select bar({sensors}) from {device}  limit 286',
+            'select step({sensors}) from {device}  limit 286',
+            'select fill({sensors}) from {device}  limit 286']
+    #
+    # # sqls = ['select scatter({sensors}) from {device}  limit 28']
     for sql in sqls:
         statements = sqlparse.parsestream(sql.format(sensors=','.join(sensors), device=device), 'utf-8')
         cli.transfer('http://192.168.130.2/cloud/qa3/kmx/v2', statements)
+
+    statements = sqlparse.parsestream("select bar(enginRotate, engineTemperature) from C2063B limit 100", 'utf-8')
+    cli.transfer('http://218.56.128.30:16805/kmx/v2', statements)
