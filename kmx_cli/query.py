@@ -24,6 +24,8 @@ close_list.append('SIZE')
 Where.M_CLOSE = (Where.M_CLOSE[0], tuple(close_list))
 KEYWORDS['PAGE'] = tokens.Keyword
 
+limit_size = 100
+
 
 def get_column_tables(sql):
     ids = []
@@ -40,7 +42,8 @@ def get_column_tables(sql):
     return ids
 
 
-def get_sensors(sql):
+def get_sensors(url, sql):
+    devices = get_tables(sql)
     # ids = get_column_tables(sql)
     # columns = []
     # for id in ids:
@@ -60,6 +63,8 @@ def get_sensors(sql):
         values = condition.value.split(',')
     for value in values:
         sensors.append(value.strip())
+    if len(sensors) == 1 and sensors[0] == '*':
+        sensors = get_sensors_by_device(url, devices[0])
     return is_function, sensors, function
 
 
@@ -67,7 +72,7 @@ def get_tables(sql):
     ids = get_column_tables(sql)
     tables = copy.deepcopy(ids)
     for id in ids:
-        if id.upper() <> 'FROM':
+        if id.upper() != 'FROM':
             tables.remove(id)
         else:
             tables.remove(id)
@@ -76,7 +81,7 @@ def get_tables(sql):
 
 
 def relative_time_parser(relativeStr, format):
-    if format.upper() <> 'ISO' and format.upper() <> 'TIMESTAMP':
+    if format.upper() != 'ISO' and format.upper() != 'TIMESTAMP':
         log.error('The time format is either not ISO or TIMESTAMP')
         return relativeStr
     if relativeStr.upper() == 'NOW':
@@ -167,6 +172,10 @@ def get_where(sql):
         return rangeQuery
 
 
+def get_limit(sql):
+    return identify.find_next_token_by_ttype(sql, lambda token: token.value.lower() == 'limit', Literal.Number.Integer)
+
+
 def get_into(sql):
     return identify.find_next_token_by_ttype(sql, lambda token: token.value.upper() == 'INTO', Literal.String.Single)
 
@@ -180,15 +189,10 @@ def dyn_query(url, dml):
         print devices
         log.error('Multi-devices query is not supported now ...')
         return
-    is_function, sensors, function = get_sensors(dml)
-    # Support wildcard * in select
-    if len(sensors) == 1 and sensors[0] == '*':
-        sensors = get_sensors_by_device(url, devices[0])
+    is_function, sensors, function = get_sensors(url, dml)
 
     predicate = get_where(dml)
-    # if not predicate:
-    #     log.error('The select statement does NOT contain WHERE predicates, currently is not supported ...')
-    #     return None
+
     query_url = 'data-points'
     is_statistic = False
     if predicate.has_key('sampleTime'):
@@ -202,17 +206,16 @@ def dyn_query(url, dml):
     else:
         log.error('The query is not supported now ...')
 
-    sources = {"device": devices[0], "sensors": sensors}
+    sources = dict(device=devices[0],sensors=sensors)
     sources[key] = value
     select = {"sources": sources}
 
-    pages, size = get_page_size(dml)
+    page, size = get_page_size(dml)
 
     uri = url + '/data/' + query_url + '?select=' + json.dumps(select)
-    if size:
-        uri += '&size=' + str(size)
+    limits = get_limit(dml)
 
-    do_query(dml, uri, pages, is_statistic)
+    do_query(dml, uri, page, size, limits, is_statistic, sensors, is_function, function)
 
 
 def merge(old, new):
@@ -225,9 +228,24 @@ def merge(old, new):
         rows = new['dataRows']
         for row in rows:
             old['dataRows'].append(row)
-        # old['dataRows'].extend[rows]
         old['pageInfo']['size'] = old['pageInfo']['size'] + size
         return old
+
+
+def merge_last(payload, last_payload, remainder):
+    if not last_payload:
+        return payload
+    size = last_payload['pageInfo']['size']
+    if size <= remainder:
+        rows = last_payload['dataRows']
+        for row in rows:
+            payload['dataRows'].append(row)
+        payload['pageInfo']['size'] = last_payload['pageInfo']['size'] + size
+    else:
+        for r in range(remainder):
+            payload['dataRows'].append(last_payload['dataRows'][r])
+        payload['pageInfo']['size'] += remainder
+    return payload
 
 
 def query_one_page(url):
@@ -244,28 +262,39 @@ def query_one_page(url):
         return json.loads(response.text)
 
 
-def do_query(dml, url, pages, is_statistic):
+def do_query(dml, url, size, page, limits, is_statistic, sensors, is_function, function):
     start_time = timeit.default_timer()
     payload = {}
-    if pages:
-        pages = pages.split(',')
-        if len(pages) == 1:
-            uri = url + '&page=' + str(pages[0])
+
+    if limits and limits[0] and len(limits) == 2:
+        limit_pages = int(limits[1]) / limit_size
+        remainder = int(limits[1]) % limit_size
+        if limit_pages == 0:
+            uri = url + '&size=%s' % remainder
             payload = query_one_page(uri)
-        elif len(pages) == 2:
-            start, end = int(pages[0].strip()), int(pages[1].strip())
-            if start > end:
-                log.error("start page must less than end page")
-                return
-            while start <= end:
-                uri = url + '&page=' + str(start)
-                payload = merge(payload, query_one_page(uri))
-                start += 1
         else:
-            log.error("to many page params...")
-            return
+            limit_page = 1
+            last = True
+            while limit_page <= limit_pages:
+                uri = url + '&page=%s&size=%s' % (limit_page, limit_size)
+                new_payload = query_one_page(uri)
+                if new_payload['pageInfo']['size'] > 0:
+                    payload = merge(payload, new_payload)
+                else:
+                    last = False
+                    break
+                limit_page += 1
+            if last and remainder > 0:
+                uri = url + '&page=%s&size=%s' % (limit_page, limit_size)
+                last_payload = query_one_page(uri)
+                payload = merge_last(payload, last_payload, remainder)
     else:
-        payload = query_one_page(url)
+        uri = url
+        if page:
+            uri = url + '&page=%s' % page
+        if size:
+            uri = url + '&size=%s' % size
+        payload = query_one_page(uri)
     elapsed = timeit.default_timer() - start_time
 
     into, path = get_into(dml)
@@ -279,7 +308,6 @@ def do_query(dml, url, pages, is_statistic):
 
     log.default('Returned in %.2f s' % elapsed)
 
-    is_function, sensors, function = get_sensors(dml)
     if is_function:
         if is_statistic:
             import statistic
@@ -311,18 +339,24 @@ def get_page_size(sql):
 
 
 def get_sensors_by_device(url, device_id):
-    uri = url + '/devices/' + device_id
-    payload = get(uri).text
-    response = json.loads(payload)
-    sensors_list = response['device']['sensors']
     sensor_ids = []
-    for sensor in sensors_list:
-        sensor_ids.append(sensor['id'])
+    uri = url + '/devices/' + device_id
+    response = get(uri)
+
+    if response.status_code == 200:
+        payload = json.loads(response.text)
+        sensors_list = payload['device']['sensors']
+        for sensor in sensors_list:
+            sensor_ids.append(sensor['id'])
+    else:
+        log.warn(payload = response.text)
+    response.close()
     return sensor_ids
 
 
 if __name__ == '__main__':
     import sqlparse
-    statements = sqlparse.parsestream('select descs(s1 ,s2) from device where ts > 1;select s1 ,s2 from device where ts > 1', 'utf-8')
+    statements = sqlparse.parsestream('select descs(s1 ,s2) from device where ts = 1 limit 11;select s1 ,s2 from device where ts > 1 page 2 size 3 limit 22', 'utf-8')
     for statement in statements:
-        print get_sensors(statement)
+        print get_limit(statement)
+        print get_sensors('http://192.168.130.2/cloud/qa3/kmx/v2', statement)

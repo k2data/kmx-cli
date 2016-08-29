@@ -63,8 +63,8 @@ eguiesdf;
 '''.format(device_type=device_type,device=device)
 
 
-sql='select * from test_import page 1 size 100'
-sql='select * from test_import page 1,5 size 4'
+# sql='select * from test_import page 2 size 4 limit 3'
+# sql='select boxplot(*) from device_async_02_ZnMix page 2 size 100'
 if __name__ == '__main__':
     statements = sqlparse.parsestream(sql.replace('\n', ''), 'utf-8')
     cli.transfer('http://192.168.130.2/cloud/qa3/kmx/v2', statements)

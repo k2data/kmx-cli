@@ -100,7 +100,7 @@ def execute_dml(url, statement):
 
 def transfer(url, statements):
     for statement in statements:
-        # print 'execute: ' + statement.value
+        print 'execute: ' + statement.value
         if str(statement).lstrip().strip().upper().startswith('SOURCE'):
             from batch import batch_exec
             batch_exec(url, statement)

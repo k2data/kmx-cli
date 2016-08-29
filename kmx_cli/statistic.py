@@ -26,7 +26,6 @@ def parse_payload(payload, sensors):
     values = {}
     for sensor in sensors:
         values[sensor] = []
-
     data_rows = payload['dataRows']
 
     for data_row in data_rows:
@@ -42,11 +41,12 @@ def parse_payload(payload, sensors):
             sensor = data_point['sensor']
             if sensor not in ids:
                 value = placeholder if 'value' not in data_point else data_point['value']
-                if value != 'null' and is_number(value):
+                if value is not None and value != 'null' and is_number(value):
                     values[sensor].append(value)
                 else:
                     values[sensor].append(placeholder)
                 ids.append(sensor)
+
     return index, values
 
 
@@ -75,40 +75,31 @@ def describe(payload, sensors):
 
 def hist(payload, sensors):
     data_frame = get_data_frame_data(payload, sensors)
-    data_frame.hist(color='lightblue')
-    pylab.show()
-    pylab.close()
-    # if data_frame:
-    #     data_frame.hist(color='lightblue')
-    #     # pylab.xlabel('sensor value')
-    #     # pylab.ylabel('distribution')
-    #     pylab.show()
-    #     pylab.close()
+    if data_frame is not None and not data_frame.empty:
+        data_frame.hist(color='lightblue')
+        # pylab.xlabel('sensor value')
+        # pylab.ylabel('distribution')
+        pylab.show()
+        pylab.close()
 
 
 def plot(payload, sensors):
     data_frame = get_data_frame_data(payload, sensors)
-    data_frame.plot()
-    pylab.show()
-    pylab.close()
-    # if data_frame:
-    #     data_frame.plot()
-        # pylab.title('plot diagram')
-        # pylab.xlabel('time')
-        # pylab.ylabel('sensor value')
+    if data_frame is not None and not data_frame.empty:
+        data_frame.plot()
+        pylab.title('plot diagram')
+        pylab.xlabel('time')
+        pylab.ylabel('sensor value')
 
 
 
 def box(payload, sensors):
     data_frame = get_data_frame_data(payload, sensors)
-    # data_frame.boxplot(return_type='dict')
-    data_frame.boxplot()
-    pylab.show()
-    pylab.close()
-    # if data_frame:
-    #     data_frame.boxplot(return_type='dict')
-    #     pylab.show()
-    #     pylab.close()
+    if data_frame is not None and not data_frame.empty:
+        # data_frame.boxplot(return_type='dict')
+        data_frame.boxplot()
+        pylab.show()
+        pylab.close()
 
 
 def execute(payload, sensors, function):
@@ -130,11 +121,18 @@ if __name__ == '__main__':
           '"sensors":["engineTemperature","xx","enginRotate","enginRotate","latitudeNum"],' + \
           '"timeRange":{"start":{"iso":"1970-01-01T00:00:00.001-00:00"},"end":{"iso":"2016-08-15T09:44:55.687%2B08:00"}}}}' + \
           '&size=20'
+    url = 'http://192.168.130.2/cloud/qa3/kmx/v2/data/data-rows?' +\
+          'select={"sources": {"device": "device_async_02_ZnMix", ' +\
+          '"sensors": ["sensor_DOUBLE", "sensor_BOOLEAN", "sensor_FLOAT", "sensor_INT", "sensor_LONG", "sensor_STRING"], ' +\
+          '"timeRange": {"start": {"iso": "1970-01-01T00:00:00.001-00:00"}, "end": {"iso": "2016-08-29T10:30:43.195%2B08:00"}}}}' +\
+          '&page=3&size=100'
     import json
+    print is_number('0.0')
     response = get(url)
     response_payload = json.loads(response.text)
     response.close()
-    sensor_ids = ["engineTemperature", "xx","enginRotate", "enginRotate","latitudeNum"]
+    sensor_ids = ["engineTemperature", "xx", "enginRotate", "enginRotate", "latitudeNum"]
+    sensor_ids = ["sensor_DOUBLE", "sensor_BOOLEAN", "sensor_FLOAT", "sensor_INT", "sensor_LONG", "sensor_STRING"]
 
     describe(response_payload, sensor_ids)
     plot(response_payload, sensor_ids)
