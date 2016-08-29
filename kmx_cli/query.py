@@ -180,6 +180,19 @@ def get_into(sql):
     return identify.find_next_token_by_ttype(sql, lambda token: token.value.upper() == 'INTO', Literal.String.Single)
 
 
+def get_order_by(sql):
+    key, orderlist = identify.find_next_token_util_stop_sign(sql, lambda t: t.value.upper() == 'ORDER', 1, "limit,page,size,into")
+    if len(orderlist) > 0:
+        column = orderlist[0]
+        order = "ASC"
+        if len(orderlist) > 1:
+            if orderlist[1].upper() in ("DESC", "ASC"):
+                order = orderlist[1]
+        return column, order
+    else:
+        return None, None
+
+
 def dyn_query(url, dml):
     devices = get_tables(dml)
     if not devices:
@@ -215,7 +228,9 @@ def dyn_query(url, dml):
     uri = url + '/data/' + query_url + '?select=' + json.dumps(select)
     limits = get_limit(dml)
 
-    do_query(dml, uri, page, size, limits, is_statistic, sensors, is_function, function)
+    key, order = get_order_by(dml)
+
+    do_query(dml, uri, page, size, limits, is_statistic, sensors, is_function, function, order)
 
 
 def merge(old, new):
@@ -262,9 +277,12 @@ def query_one_page(url):
     return payload
 
 
-def do_query(dml, url, size, page, limits, is_statistic, sensors, is_function, function):
+def do_query(dml, url, size, page, limits, is_statistic, sensors, is_function, function, order):
     start_time = timeit.default_timer()
     payload = {}
+
+    if order:
+        url += '&order={"defaultOrder":"%s"}' % order
 
     if limits and limits[0] and len(limits) == 2:
         limit_pages = int(limits[1]) / limit_size
@@ -357,7 +375,10 @@ def get_sensors_by_device(url, device_id):
 
 if __name__ == '__main__':
     import sqlparse
-    statements = sqlparse.parsestream('select descs(s1 ,s2) from device where ts = 1 limit 11;select s1 ,s2 from device where ts > 1 page 2 size 3 limit 22', 'utf-8')
+    # statements = sqlparse.parsestream('select descs(s1 ,s2) from device where ts = 1 limit 11;select s1 ,s2 from device where ts > 1 page 2 size 3 limit 22', 'utf-8')
+    statements = sqlparse.parsestream('select enginRotate from C2063B order by time desc', 'utf-8')
     for statement in statements:
-        print get_limit(statement)
-        print get_sensors('http://192.168.130.2/cloud/qa3/kmx/v2', statement)
+        # print get_limit(statement)
+        # print get_sensors('http://192.168.130.2/cloud/qa3/kmx/v2', statement)
+        # print get_order_by(statement)
+        dyn_query('http://218.56.128.30:16805/kmx/v2', statement)
