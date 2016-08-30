@@ -88,8 +88,6 @@ def hist(payload, sensors):
     data_frame = get_data_frame_data(payload, sensors)
     if data_frame is not None and not data_frame.empty:
         data_frame.hist(color='lightblue')
-        # pylab.xlabel('sensor value')
-        # pylab.ylabel('distribution')
         pylab.show()
         pylab.close()
 
@@ -109,19 +107,14 @@ def plot(payload, sensors):
     if data_frame is not None and not data_frame.empty:
         index = data_frame.index
         size = index.size
-        step = 1
-        if size > 6:
-            step = size / 6;
+        step = 1 if size <= 18 else size / 18;
         position = range(0, size, step)
         if (size-1) not in position:
             position.append(size-1)
 
         data_frame.plot()
         pylab.title('Timing diagram')
-        pylab.xlabel('time')
-        pylab.ylabel('value')
-        plt.xticks(position, index[0::step])
-        # pylab.grid(axis='x', alpha=0.8)
+        plt.xticks(position, index[::step], rotation=15, horizontalalignment='right')
         pylab.show()
         pylab.close()
 
@@ -133,6 +126,103 @@ def box_plot(payload, sensors):
         data_frame.boxplot()
         pylab.show()
         pylab.close()
+
+
+# 每个sensor一个折线图
+def plots(payload, sensors):
+    index, values = parse_payload(payload, sensors)
+    if not index or not values:
+        log.warn("query return 0 data point. skip statistic")
+        return
+
+    datas = get_data(sensors, values)
+    if not datas:
+        log.warn("query return 0 data point. skip statistic")
+        return
+
+    n = len(datas)
+    row = 1 if n < 5 else n/4 + 1
+    col = 1 if n/row == 0 else n/row
+    fig, axes = plt.subplots(nrows=row, ncols=col, figsize=(20, 8))
+    if isinstance(axes, matplotlib.axes.Subplot):
+        y = datas[sensors[0]]
+        if not_empty(y):
+            axes.plot(y)
+            axes.set_xlabel(sensors[0])
+    elif row == 1:
+        num = 0
+        for axe in axes:
+            y = datas[sensors[num]]
+            if not_empty(y):
+                axe.plot(y, alpha=0.5)
+                axe.set_xlabel(sensors[num])
+            num += 1
+    elif isinstance(axes, numpy.ndarray):
+        num = 0
+        for rows in axes:
+            for axe in rows:
+                y = datas[sensors[num]]
+                axe.plot(y, alpha=0.5)
+                axe.set_xlabel(sensors[num])
+                num += 1
+    else:
+        log.error('unsupport data type')
+        plt.close()
+        return
+    plt.show()
+    plt.close()
+
+
+# 每个sensor一个独立箱图
+def box_plots(payload, sensors):
+    index, values = parse_payload(payload, sensors)
+    if not index or not values:
+        log.warn("query return 0 data point. skip statistic")
+        return
+
+    datas = get_data(sensors, values)
+    if not datas:
+        log.warn("query return 0 data point. skip statistic")
+        return
+
+    n = len(datas)
+    row = 1 if n < 5 else n/4 + 1
+    col = n/row
+    fig, axes = plt.subplots(nrows=row, ncols=col, figsize=(20, 8))
+    if isinstance(axes, matplotlib.axes.Subplot):
+        y = datas[sensors[0]]
+        if not_empty(y):
+            axes.boxplot(y)
+    elif row == 1:
+        num = 0
+        for axe in axes:
+            sensor = sensors[num]
+            y = datas[sensor]
+            if not_empty(y):
+                axe.boxplot(y)
+                axe.set_title(sensor)
+            else:
+                axe.axis('off') # hide subplot
+            num += 1
+    elif isinstance(axes, numpy.ndarray):
+        num = 0
+        for rows in axes:
+            for axe in rows:
+                sensor = sensors[num]
+                y = datas[sensor]
+                if not_empty(y):
+                    axe.boxplot(y)
+                    axe.set_title(sensor)
+                else:
+                    axe.axis('off') # hide subplot
+                num += 1
+    else:
+        log.error('unsupport data type')
+        plt.close()
+        return
+    plt.setp(axes, xticklabels=['']*n)
+    plt.show()
+    plt.close()
 
 
 # 散列图scatter
@@ -157,22 +247,34 @@ def scatter(payload, sensors):
         log.warn("query return 0 data point. skip statistic")
         return
 
-    x = datas[sensors[0]]
     n = len(datas)
-    fig, axes = plt.subplots(1, n - 1, figsize=(24, 8))
-
     if n <= 1:
         log.error('the contrast sensors must be more than one, but got [ %s ]' % ','.join(sensors))
         return
 
-    if isinstance(axes, numpy.ndarray):
-        for index in range(1, n):
-            y = datas[sensors[index]]
-            axes[index-1].scatter(x, y, alpha=0.5, cmap=plt.cm.hsv)
-    elif isinstance(axes, matplotlib.axes.Subplot):
+    row = 1 if n < 5 else n/4 + 1
+    col = (n-1)/row
+    fig, axes = plt.subplots(nrows=row, ncols=col, figsize=(20, 8))
+    x = datas[sensors[0]]
+
+    if isinstance(axes, matplotlib.axes.Subplot):
         y = datas[sensors[1]]
         if not_empty(y):
+            axes.set_xlabel(sensors[0])
+            axes.set_ylabel(sensors[1])
             axes.scatter(x, y, alpha=0.5, cmap=plt.cm.hsv)
+    elif isinstance(axes, numpy.ndarray):
+        num = 0
+        for rows in axes:
+            for axe in rows:
+                num += 1
+                y = datas[sensors[num]]
+                if num < n and not_empty(y):
+                    axe.set_xlabel(sensors[0])
+                    axe.set_ylabel(sensors[num])
+                    axe.scatter(x, y, alpha=0.5, cmap=plt.cm.hsv)
+                else:
+                    axe.axis('off') # hide subplot
     else:
         log.error('unsupport data type')
         plt.close()
@@ -193,26 +295,38 @@ def step(payload, sensors):
         log.warn("query return 0 data point. skip statistic")
         return
 
-    x = datas[sensors[0]]
     n = len(datas)
-    fig, axes = plt.subplots(1, n - 1, figsize=(24, 8))
-
     if n <= 1:
         log.error('the contrast sensors must be more than one, but got [ %s ]' % ','.join(sensors))
         return
 
+    row = 1 if n < 5 else n/4 + 1
+    col = (n-1)/row
+    fig, axes = plt.subplots(nrows=row, ncols=col, figsize=(20, 8))
+    x = datas[sensors[0]]
+
     if isinstance(axes, numpy.ndarray):
-        for index in range(1, n):
-            y = datas[sensors[index]]
-            axes[index-1].step(x, y, color='lightblue', lw=1, alpha=0.8)
+        num = 0
+        for rows in axes:
+            for axe in rows:
+                num += 1
+                y = datas[sensors[num]]
+                if num < n and not_empty(y):
+                    axe.set_xlabel(sensors[0])
+                    axe.set_ylabel(sensors[num])
+                    axe.step(x, y, lw=1, alpha=0.8)
+                else:
+                    axe.axis('off') # hide subplot
     elif isinstance(axes, matplotlib.axes.Subplot):
         y = datas[sensors[1]]
         if not_empty(y):
-            axes.step(x, y, color='lightblue', lw=1, alpha=0.8)
+            axes.set_xlabel(sensors[0])
+            axes.set_ylabel(sensors[1])
+            axes.step(x, y, lw=1, alpha=0.8)
     else:
         log.error('unsupport data type')
+        plt.close()
         return
-
     plt.show()
     plt.close()
 
@@ -233,27 +347,37 @@ def bar(payload, sensors):
         log.warn("query return 0 data point. skip statistic")
         return
 
-    x = datas[sensors[0]]
     n = len(datas)
-    fig, axes = plt.subplots(1, n - 1, figsize=(24, 8))
-
     if n <= 1:
         log.error('the contrast sensors must be more than one, but got [ %s ]' % ','.join(sensors))
         return
 
+    row = 1 if n < 5 else n/4 + 1
+    col = (n-1)/row
+    fig, axes = plt.subplots(nrows=row, ncols=col, figsize=(20, 8))
+    x = datas[sensors[0]]
     if isinstance(axes, numpy.ndarray):
-        for index in range(1, n):
-            y = datas[sensors[index]]
-            axes[index-1].bar(x, y, align="center", width=0.5/n, alpha=0.5)
+        num = 0
+        for rows in axes:
+            for axe in rows:
+                num += 1
+                y = datas[sensors[num]]
+                if num < n and not_empty(y):
+                    axe.set_xlabel(sensors[0])
+                    axe.set_ylabel(sensors[num])
+                    axe.bar(x, y, align="center", width=0.5/n, alpha=0.5)
+                else:
+                    axe.axis('off') # hide subplot
     elif isinstance(axes, matplotlib.axes.Subplot):
         y = datas[sensors[1]]
         if not_empty(y):
-            plt.ylabel(sensors[1])
+            axes.set_xlabel(sensors[0])
+            axes.set_ylabel(sensors[1])
             axes.bar(x, y, align="center", width=0.5/n, alpha=0.5)
     else:
         log.error('unsupport data type')
+        plt.close()
         return
-    plt.xlabel(sensors[0])
     plt.show()
     plt.close()
 
@@ -270,25 +394,39 @@ def fill_between(payload, sensors):
         log.warn("query return 0 data point. skip statistic")
         return
 
-    x = datas[sensors[0]]
     n = len(datas)
-    fig, axes = plt.subplots(1, n - 1, figsize=(24, 8))
-
     if n <= 1:
         log.error('the contrast sensors must be more than one, but got [ %s ]' % ','.join(sensors))
         return
 
+    row = 1 if n < 5 else n/4 + 1
+    col = (n-1)/row
+    fig, axes = plt.subplots(nrows=row, ncols=col, figsize=(20, 8))
+    x = datas[sensors[0]]
+
     if isinstance(axes, numpy.ndarray):
-        for index in range(1, n):
-            y = datas[sensors[index]]
-            axes[index - 1].fill_between(x, y, color="green", alpha=0.5)
+        num = 0
+        for rows in axes:
+            for axe in rows:
+                num += 1
+                y = datas[sensors[num]]
+                if num < n and not_empty(y):
+                    axe.set_xlabel(sensors[0])
+                    axe.set_ylabel(sensors[num])
+                    axe.fill_between(x, y, color="green", alpha=0.5)
+                else:
+                    axe.axis('off') # hide subplot
     elif isinstance(axes, matplotlib.axes.Subplot):
         y = datas[sensors[1]]
         if not_empty(y):
+            axes.set_xlabel(sensors[0])
+            axes.set_ylabel(sensors[1])
             axes.fill_between(x, y, color="green", alpha=0.5)
     else:
         log.error('unsupport data type')
         return
+    plt.show()
+    plt.close()
 
 
 def execute(payload, sensors, function):
@@ -296,8 +434,12 @@ def execute(payload, sensors, function):
         describe(payload, sensors)
     elif function == 'plot':
         plot(payload, sensors)
+    elif function == 'plots':
+        plots(payload, sensors)
     elif function == 'boxplot':
         box_plot(payload, sensors)
+    elif function == 'boxplots':
+        box_plots(payload, sensors)
     elif function == 'hist':
         hist(payload, sensors)
     elif function == 'histf':
@@ -311,7 +453,7 @@ def execute(payload, sensors, function):
     elif function == 'fill':
         fill_between(payload, sensors)
     else:
-        log.error("statistic do not support :" + function + '. Only support [describe, hist, histf, plot, boxplot, scatter, step, bar, fill]')
+        log.error("statistic do not support :" + function + '. Only support [describe, hist, histf, plot, boxplot,boxplots, scatter, step, bar, fill]')
 
 
 if __name__ == '__main__':
@@ -319,23 +461,26 @@ if __name__ == '__main__':
     import sqlparse
 
     device = 'GW150008'
-    # sensors = ['WCNVConver_setup_igbt2', 'WCNVConver_chopper_igbt_temp', 'xxx', 'WCNVConver_generator_capacitorstmpf', 'WCNVConver_setup_igbt1', 'WCNVConver_setup_igbt3', 'WCNVHzInstMagf']
-    sensors = ['WCNVConver_setup_igbt2', 'WCNVConver_chopper_igbt_temp']
-    #
-    # sqls = ['select describe({sensors}) from {device} limit 286',
-    #         'select hist({sensors}) from {device}  limit 286',
-    #         'select histf({sensors}) from {device}  limit 286',
-    #         'select plot({sensors}) from {device}  limit 286',
-    #         'select boxplot({sensors}) from {device}  limit 286',
-    #         'select scatter({sensors}) from {device}  limit 286',
-    #         'select bar({sensors}) from {device}  limit 286',
-    #         'select step({sensors}) from {device}  limit 286',
-    #         'select fill({sensors}) from {device}  limit 286']
-    # #
-    sqls = ['select plot({sensors}) from {device}  limit 128']
+    sensors = ['WCNVConver_setup_igbt2', 'WCNVConver_chopper_igbt_temp','xx', 'WCNVConver_generator_capacitorstmpf', 'WCNVConver_setup_igbt1', 'WCNVConver_setup_igbt3', 'WCNVHzInstMagf']
+    sensors = ['WCNVConver_setup_igbt2','WCNVConver_chopper_igbt_temp']
+
+    sqls = ['select describe({sensors}) from {device} limit 12',
+            'select hist({sensors}) from {device}  limit 12',
+            'select histf({sensors}) from {device}  limit 12',
+            'select plot({sensors}) from {device}  limit 12',
+            'select plots({sensors}) from {device}  limit 12',
+            'select boxplot({sensors}) from {device}  limit 12',
+            'select boxplots({sensors}) from {device}  limit 12',
+            'select scatter({sensors}) from {device}  limit 12',
+            'select bar({sensors}) from {device}  limit 12',
+            'select step({sensors}) from {device}  limit 12',
+            'select fill({sensors}) from {device}  limit 12']
+
+    # sqls = ['select plots({sensors}) from {device}  limit 18']
     for sql in sqls:
         statements = sqlparse.parsestream(sql.format(sensors=','.join(sensors), device=device), 'utf-8')
         cli.transfer('http://192.168.130.2/cloud/qa3/kmx/v2', statements)
+        print sql
 
     # statements = sqlparse.parsestream("select scatter(enginRotate, engineTemperature,gsmSignal) from C2063B limit 100", 'utf-8')
     # cli.transfer('http://218.56.128.30:16805/kmx/v2', statements)
