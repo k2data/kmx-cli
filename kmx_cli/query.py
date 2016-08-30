@@ -301,7 +301,7 @@ def do_query(dml, url, page, size, limits, is_statistic, sensors, is_function, f
             while limit_page <= limit_pages:
                 uri = url + '&page=%s&size=%s' % (limit_page, limit_size)
                 new_payload = query_one_page(uri)
-                if new_payload['pageInfo']['size'] > 0:
+                if new_payload and new_payload['pageInfo']['size'] > 0:
                     payload = merge(payload, new_payload)
                 else:
                     last = False
@@ -388,9 +388,9 @@ def get_sensors_by_device(url, device_id):
 if __name__ == '__main__':
     import sqlparse
     # statements = sqlparse.parsestream('select descs(s1 ,s2) from device where ts = 1 limit 11;select s1 ,s2 from device where ts > 1 page 2 size 3 limit 22', 'utf-8')
-    statements = sqlparse.parsestream("select enginRotate from C2063B where ts<'now-2h' order by time desc page 2 size 5", 'utf-8')
+    statements = sqlparse.parsestream("select plot(WNACWSpdInstMagf,WGENSpdInstMagi,WNACIntTmpinstMagf) from GW150009 limit 1000", 'utf-8')
     for statement in statements:
         # print get_limit(statement)
         # print get_sensors('http://192.168.130.2/cloud/qa3/kmx/v2', statement)
         # print get_order_by(statement)
-        dyn_query('http://218.56.128.30:16805/kmx/v2', statement)
+        dyn_query('http://192.168.130.2/cloud/qa3/kmx/v2', statement)
