@@ -150,8 +150,24 @@ select sensor_name
     page 3 size 40
 ```
 *Note, Page and Size is not required, if Page or Size is not set, default value will be used.*
-#
-## dynamic data statistic
+
+
+### Limit support
+```
+select sensor_name
+    from device_name
+    limit 400
+```
+
+### Order by time support
+```
+select sensor_name
+    from device_name
+    order by time desc
+```
+*Note, currently only time column support order by*
+
+### dynamic data statistic
 statistic depends pandas,you must install pandas first
 ```
 sudo apt-get install python-pandas
@@ -162,9 +178,13 @@ select describe(DOUBLE_dt_sync_02_dWavQ) from device_sync_01_dWavQ where ts>1469
 select hist(DOUBLE_dt_sync_02_dWavQ) from device_sync_01_dWavQ where ts>'2015-07-28 10:13' and ts<'2016-07-28';
 select plot(DOUBLE_dt_sync_02_dWavQ) from device_sync_01_dWavQ where ts>'2016-07-28T10:13:52.196%2B08:00' and ts<'2016-07-28T10:13:52.644%2B08:00';
 select boxplot(DOUBLE_dt_sync_02_dWavQ) from device_sync_01_dWavQ where ts>'2016-07-28T10:13:52.196+08:00' and ts<'2016-07-28T10:13:52.644+08:00';
+select scatter(DOUBLE_dt_sync_02_dWavQ) from device_sync_01_dWavQ order by time desc limit 1000;
+select step(DOUBLE_dt_sync_02_dWavQ) from device_sync_01_dWavQ order by time desc limit 1000;
+select bar(DOUBLE_dt_sync_02_dWavQ) from device_sync_01_dWavQ order by time desc limit 1000;
+select fill(DOUBLE_dt_sync_02_dWavQ) from device_sync_01_dWavQ order by time desc limit 1000;
 ```
-#
-## export dynamic data
+
+### export dynamic data
 ```
 select <sensorId>[,<sensorId>...] from <deviceId> [where ts={<timestamp> |'<iso>' | 'relative_time_expr'}]  [page <m> ] [size <n>] into '<outfile_path>'
 select * from <deviceId> [where ts={<timestamp> |'<iso>' | 'relative_time_expr'}] [page <m> ] [size <n>] into '<outfile_path>'

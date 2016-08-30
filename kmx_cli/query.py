@@ -69,14 +69,19 @@ def get_sensors(url, sql):
 
 
 def get_tables(sql):
-    ids = get_column_tables(sql)
-    tables = copy.deepcopy(ids)
-    for id in ids:
-        if id.upper() != 'FROM':
-            tables.remove(id)
-        else:
-            tables.remove(id)
-            break
+    # ids = get_column_tables(sql)
+    # tables = copy.deepcopy(ids)
+    # for id in ids:
+    #     if id.upper() != 'FROM':
+    #         tables.remove(id)
+    #     else:
+    #         tables.remove(id)
+    #         break
+    # return tables
+    key, tables = identify.find_next_token_util_stop_sign(sql, lambda t: t.value.upper()=='FROM', 0, 'where,group,having,order,limit,size,page,into')
+    for table in tables:
+        if table.strip() == ',':
+            tables.remove(table)
     return tables
 
 
@@ -277,7 +282,7 @@ def query_one_page(url):
     return payload
 
 
-def do_query(dml, url, size, page, limits, is_statistic, sensors, is_function, function, order):
+def do_query(dml, url, page, size, limits, is_statistic, sensors, is_function, function, order):
     start_time = timeit.default_timer()
     payload = {}
 
@@ -309,9 +314,9 @@ def do_query(dml, url, size, page, limits, is_statistic, sensors, is_function, f
     else:
         uri = url
         if page:
-            uri = url + '&page=%s' % page
+            uri += '&page=%s' % page
         if size:
-            uri = url + '&size=%s' % size
+            uri += '&size=%s' % size
         payload = query_one_page(uri)
     elapsed = timeit.default_timer() - start_time
 
@@ -337,23 +342,30 @@ def do_query(dml, url, size, page, limits, is_statistic, sensors, is_function, f
 
 
 def get_page_size(sql):
-    page = None
-    size = None
-    tokens = TokenList(sql.tokens)
-    if isinstance(tokens, TokenList):
-        page_token = tokens.token_matching([lambda t: t.value.upper() == 'PAGE'],0)
-        if page_token:
-            page_idx = tokens.token_index(page_token, 0)
-            while tokens[page_idx].ttype is not Literal.Number.Integer:
-                page_idx += 1
-            page = tokens[page_idx].value
-
-        size_token = tokens.token_matching([lambda t: t.value.upper() == 'SIZE'],0)
-        if size_token:
-            size_idx = tokens.token_index(size_token, 0)
-            while tokens[size_idx].ttype is not Literal.Number.Integer:
-                size_idx += 1
-            size = tokens[size_idx].value
+    # page = None
+    # size = None
+    # tokens = TokenList(sql.tokens)
+    # if isinstance(tokens, TokenList):
+    #     page_token = tokens.token_matching([lambda t: t.value.upper() == 'PAGE'],0)
+    #     if page_token:
+    #         page_idx = tokens.token_index(page_token, 0)
+    #         while tokens[page_idx].ttype is not Literal.Number.Integer:
+    #             page_idx += 1
+    #         page = tokens[page_idx].value
+    #
+    #     size_token = tokens.token_matching([lambda t: t.value.upper() == 'SIZE'],0)
+    #     if size_token:
+    #         size_idx = tokens.token_index(size_token, 0)
+    #         while tokens[size_idx].ttype is not Literal.Number.Integer:
+    #             size_idx += 1
+    #         size = tokens[size_idx].value
+    # return page, size
+    key, page = identify.find_next_token(sql, lambda t: t.value.upper()=='PAGE')
+    if isinstance(page, int):
+        page = None
+    key, size = identify.find_next_token(sql, lambda t: t.value.upper()=='SIZE')
+    if isinstance(size, int):
+        size = None
     return page, size
 
 
@@ -376,7 +388,7 @@ def get_sensors_by_device(url, device_id):
 if __name__ == '__main__':
     import sqlparse
     # statements = sqlparse.parsestream('select descs(s1 ,s2) from device where ts = 1 limit 11;select s1 ,s2 from device where ts > 1 page 2 size 3 limit 22', 'utf-8')
-    statements = sqlparse.parsestream('select enginRotate from C2063B order by time desc', 'utf-8')
+    statements = sqlparse.parsestream("select enginRotate from C2063B where ts<'now-2h' order by time desc page 2 size 5", 'utf-8')
     for statement in statements:
         # print get_limit(statement)
         # print get_sensors('http://192.168.130.2/cloud/qa3/kmx/v2', statement)

@@ -178,7 +178,8 @@ def find_next_token_util_stop_sign(sql, lambda_func, offset, stop_sign):
     '''
     stop_sign_list = stop_sign.split(",")
     target = ''
-    tokens = TokenList(sql.tokens)
+    # tokens = TokenList(sql.tokens)
+    tokens = TokenList(trip_tokens(sql.tokens))
     if isinstance(tokens, TokenList):
         tokens = list(tokens.flatten())
         tokens = TokenList(tokens)
