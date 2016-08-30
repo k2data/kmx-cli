@@ -273,11 +273,19 @@ def query_one_page(url):
     log.primary(url)
     response = get(url)
     rc = response.status_code
+    retry = 0
+    while rc != 200 and retry < 3:
+        response.close()
+        log.primary(url)
+        response = get(url)
+        rc = response.status_code
+        retry += 1
     if rc != 200:
         log.error('Code: ' + str(rc))
         log.error(response.text)
-    else:
-        payload = json.loads(response.text)
+        return
+
+    payload = json.loads(response.text)
     response.close()
     return payload
 
