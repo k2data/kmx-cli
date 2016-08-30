@@ -107,10 +107,20 @@ def hist_normed(payload, sensors):
 def plot(payload, sensors):
     data_frame = get_data_frame_data(payload, sensors)
     if data_frame is not None and not data_frame.empty:
+        index = data_frame.index
+        size = index.size
+        step = 1
+        if size > 6:
+            step = size / 6;
+        position = range(0, size, step)
+        if (size-1) not in position:
+            position.append(size-1)
+
         data_frame.plot()
         pylab.title('Timing diagram')
         pylab.xlabel('time')
         pylab.ylabel('value')
+        plt.xticks(position, index[0::step])
         # pylab.grid(axis='x', alpha=0.8)
         pylab.show()
         pylab.close()
@@ -322,10 +332,10 @@ if __name__ == '__main__':
     #         'select step({sensors}) from {device}  limit 286',
     #         'select fill({sensors}) from {device}  limit 286']
     # #
-    # # # sqls = ['select scatter({sensors}) from {device}  limit 28']
-    # for sql in sqls:
-    #     statements = sqlparse.parsestream(sql.format(sensors=','.join(sensors), device=device), 'utf-8')
-    #     cli.transfer('http://192.168.130.2/cloud/qa3/kmx/v2', statements)
+    sqls = ['select plot({sensors}) from {device}  limit 128']
+    for sql in sqls:
+        statements = sqlparse.parsestream(sql.format(sensors=','.join(sensors), device=device), 'utf-8')
+        cli.transfer('http://192.168.130.2/cloud/qa3/kmx/v2', statements)
 
-    statements = sqlparse.parsestream("select scatter(enginRotate, engineTemperature,gsmSignal) from C2063B limit 100", 'utf-8')
-    cli.transfer('http://218.56.128.30:16805/kmx/v2', statements)
+    # statements = sqlparse.parsestream("select scatter(enginRotate, engineTemperature,gsmSignal) from C2063B limit 100", 'utf-8')
+    # cli.transfer('http://218.56.128.30:16805/kmx/v2', statements)
