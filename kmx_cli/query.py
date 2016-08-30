@@ -269,7 +269,6 @@ def merge_last(payload, last_payload, remainder):
 
 
 def query_one_page(url):
-    payload = None
     log.primary(url)
     response = get(url)
     rc = response.status_code
