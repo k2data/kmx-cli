@@ -68,6 +68,7 @@ String must be quoted if chinese or other special characters in it.
 import argparse
 import cmd
 import socket
+import urllib
 
 import sqlparse
 from colorama import Back
@@ -124,9 +125,18 @@ def error_message(line):
 
 
 class Client(cmd.Cmd):
-    hostname = socket.gethostname();
-    ip = socket.gethostbyname(hostname);
-    prompt = '[' + hostname + '@' + ip + '] > '
+    prompt = ''
+
+    def __init__(self, url):
+        cmd.Cmd.__init__(self)
+        self.url = url
+        self.get_host()
+
+    def get_host(self):
+        proto, rest = urllib.splittype(self.url)
+        hostname, rest = urllib.splithost(rest)
+        log.success('Welcome to the KMX Command Line.')
+        self.prompt = '[' + hostname + '] > '
 
     def onecmd(self, line):
         """
@@ -182,7 +192,7 @@ class Client(cmd.Cmd):
     def do_history(self, line):
         """Print a list of commands that have been entered"""
         for cmdline in self._hist:
-            print cmdline
+            log.default(cmdline)
 
     def exit(self, line):
         log.primary('Exit KMX CLI...')
@@ -202,12 +212,13 @@ class Client(cmd.Cmd):
         # print "running shell command:", line
         import os
         output = os.popen(line).read()
-        print output
+        log.default(output)
         self.last_output = output
 
     def do_url(self, line):
         if line:
             self.url = line
+            self.get_host()
             print 'New URL: ' + Back.GREEN + self.url + Back.RESET
         else:
             print 'Query URL:' + Back.GREEN + self.url + Back.RESET
@@ -217,7 +228,7 @@ class Client(cmd.Cmd):
         Yang Rui, Zheng Chunxi, Chang Xue, Li Zhenxing
         @K2data
         """
-        print authors
+        log.default(authors)
 
     def kmx_cmd(self, sql):
         try:
@@ -242,17 +253,15 @@ def run():
 | |\  \| |  | |/ /^\ \ \ |_/ /.___/ /_| |_
 \_| \_/\_|  |_/\/   \/  \___(_)____(_)___/
         """
-        print welcome
+        log.default(welcome)
         print 'Query URL: ' + Back.GREEN + str(url) + Back.RESET
-        client = Client()
-        client.url = url
+        client = Client(url)
         client.cmdloop()
 
     else:
-        print 'You must provide an HTTP REST URL for KMX query ...'
-        print 'Use -u or --url to init URL'
-        print 'Use -h to get help ...'
-
+        log.default('You must provide an HTTP REST URL for KMX query ...')
+        log.default('Use -u or --url to init URL')
+        log.default('Use -h to get help ...')
 
 if __name__ == '__main__':
     run()
