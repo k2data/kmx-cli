@@ -316,7 +316,24 @@ def step(payload, sensors):
     fig, axes = plt.subplots(nrows=row, ncols=col, figsize=(20, 8))
     x = datas[sensors[0]]
 
-    if isinstance(axes, numpy.ndarray):
+    if isinstance(axes, matplotlib.axes.Subplot):
+        y = datas[sensors[1]]
+        if not_empty(y):
+            axes.set_xlabel(sensors[0])
+            axes.set_ylabel(sensors[1])
+            axes.step(x, y, lw=1, alpha=0.8)
+    elif row == 1:
+        num = 0
+        for axe in axes:
+            num += 1
+            y = datas[sensors[num]]
+            if num < n and not_empty(y):
+                axe.set_xlabel(sensors[0])
+                axe.set_ylabel(sensors[num])
+                axe.step(x, y, lw=1, alpha=0.8)
+            else:
+                axe.axis('off') # hide subplot
+    elif isinstance(axes, numpy.ndarray):
         num = 0
         for rows in axes:
             for axe in rows:
@@ -328,12 +345,6 @@ def step(payload, sensors):
                     axe.step(x, y, lw=1, alpha=0.8)
                 else:
                     axe.axis('off') # hide subplot
-    elif isinstance(axes, matplotlib.axes.Subplot):
-        y = datas[sensors[1]]
-        if not_empty(y):
-            axes.set_xlabel(sensors[0])
-            axes.set_ylabel(sensors[1])
-            axes.step(x, y, lw=1, alpha=0.8)
     else:
         log.error('unsupport data type')
         plt.close()
@@ -367,7 +378,25 @@ def bar(payload, sensors):
     col = (n-1)/row
     fig, axes = plt.subplots(nrows=row, ncols=col, figsize=(20, 8))
     x = datas[sensors[0]]
-    if isinstance(axes, numpy.ndarray):
+
+    if isinstance(axes, matplotlib.axes.Subplot):
+        y = datas[sensors[1]]
+        if not_empty(y):
+            axes.set_xlabel(sensors[0])
+            axes.set_ylabel(sensors[1])
+            axes.bar(x, y, align="center", width=0.5/n, alpha=0.5)
+    elif row == 1:
+        num = 0
+        for axe in axes:
+            num += 1
+            y = datas[sensors[num]]
+            if num < n and not_empty(y):
+                axe.set_xlabel(sensors[0])
+                axe.set_ylabel(sensors[num])
+                axe.bar(x, y, align="center", width=0.5/n, alpha=0.5)
+            else:
+                axe.axis('off') # hide subplot
+    elif isinstance(axes, numpy.ndarray):
         num = 0
         for rows in axes:
             for axe in rows:
@@ -379,12 +408,6 @@ def bar(payload, sensors):
                     axe.bar(x, y, align="center", width=0.5/n, alpha=0.5)
                 else:
                     axe.axis('off') # hide subplot
-    elif isinstance(axes, matplotlib.axes.Subplot):
-        y = datas[sensors[1]]
-        if not_empty(y):
-            axes.set_xlabel(sensors[0])
-            axes.set_ylabel(sensors[1])
-            axes.bar(x, y, align="center", width=0.5/n, alpha=0.5)
     else:
         log.error('unsupport data type')
         plt.close()
@@ -415,7 +438,24 @@ def fill_between(payload, sensors):
     fig, axes = plt.subplots(nrows=row, ncols=col, figsize=(20, 8))
     x = datas[sensors[0]]
 
-    if isinstance(axes, numpy.ndarray):
+    if isinstance(axes, matplotlib.axes.Subplot):
+        y = datas[sensors[1]]
+        if not_empty(y):
+            axes.set_xlabel(sensors[0])
+            axes.set_ylabel(sensors[1])
+            axes.fill_between(x, y, color="green", alpha=0.5)
+    elif row == 1:
+        num = 0
+        for axe in axes:
+            num += 1
+            y = datas[sensors[num]]
+            if num < n and not_empty(y):
+                axe.set_xlabel(sensors[0])
+                axe.set_ylabel(sensors[num])
+                axe.fill_between(x, y, color="green", alpha=0.5)
+            else:
+                axe.axis('off') # hide subplot
+    elif isinstance(axes, numpy.ndarray):
         num = 0
         for rows in axes:
             for axe in rows:
@@ -427,12 +467,6 @@ def fill_between(payload, sensors):
                     axe.fill_between(x, y, color="green", alpha=0.5)
                 else:
                     axe.axis('off') # hide subplot
-    elif isinstance(axes, matplotlib.axes.Subplot):
-        y = datas[sensors[1]]
-        if not_empty(y):
-            axes.set_xlabel(sensors[0])
-            axes.set_ylabel(sensors[1])
-            axes.fill_between(x, y, color="green", alpha=0.5)
     else:
         log.error('unsupport data type')
         return
