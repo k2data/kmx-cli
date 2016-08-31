@@ -521,11 +521,16 @@ if __name__ == '__main__':
             'select step({sensors}) from {device}  limit 12',
             'select fill({sensors}) from {device}  limit 12']
 
-    sqls = ['select scatter({sensors}) from {device}  limit 18']
-    # for sql in sqls:
-    #     statements = sqlparse.parsestream(sql.format(sensors=','.join(sensors), device=device), 'utf-8')
-    #     cli.transfer('http://192.168.130.2/cloud/qa3/kmx/v2', statements)
-    #     print sql
+    # sqls = ['select scatter({sensors}) from {device}  limit 18']
+    for sql in sqls:
+        statements = sqlparse.parsestream(sql.format(sensors=','.join(sensors), device=device), 'utf-8')
+        cli.transfer('http://192.168.130.2/cloud/qa3/kmx/v2', statements)
+        print sql
 
-    statements = sqlparse.parsestream("select scatter(enginRotate, engineTemperature,gsmSignal) from C2063B limit 100", 'utf-8')
-    cli.transfer('http://218.56.128.30:16805/kmx/v2', statements)
+    # statements = sqlparse.parsestream("select scatter(enginRotate, engineTemperature,gsmSignal) from C2063B limit 100", 'utf-8')
+    # cli.transfer('http://218.56.128.30:16805/kmx/v2', statements)
+
+
+
+
+
