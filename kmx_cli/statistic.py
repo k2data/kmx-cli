@@ -263,6 +263,17 @@ def scatter(payload, sensors):
             axes.set_xlabel(sensors[0])
             axes.set_ylabel(sensors[1])
             axes.scatter(x, y, alpha=0.5, cmap=plt.cm.hsv)
+    elif row == 1:
+        num = 0
+        for axe in axes:
+            num += 1
+            y = datas[sensors[num]]
+            if num < n and not_empty(y):
+                axe.set_xlabel(sensors[0])
+                axe.set_ylabel(sensors[num])
+                axe.scatter(x, y, alpha=0.5, cmap=plt.cm.hsv)
+            else:
+                axe.axis('off') # hide subplot
     elif isinstance(axes, numpy.ndarray):
         num = 0
         for rows in axes:
@@ -462,7 +473,7 @@ if __name__ == '__main__':
 
     device = 'GW150008'
     sensors = ['WCNVConver_setup_igbt2', 'WCNVConver_chopper_igbt_temp','xx', 'WCNVConver_generator_capacitorstmpf', 'WCNVConver_setup_igbt1', 'WCNVConver_setup_igbt3', 'WCNVHzInstMagf']
-    sensors = ['WCNVConver_setup_igbt2','WCNVConver_chopper_igbt_temp']
+    # sensors = ['WCNVConver_setup_igbt2','WCNVConver_chopper_igbt_temp']
 
     sqls = ['select describe({sensors}) from {device} limit 12',
             'select hist({sensors}) from {device}  limit 12',
@@ -476,11 +487,11 @@ if __name__ == '__main__':
             'select step({sensors}) from {device}  limit 12',
             'select fill({sensors}) from {device}  limit 12']
 
-    # sqls = ['select plots({sensors}) from {device}  limit 18']
-    for sql in sqls:
-        statements = sqlparse.parsestream(sql.format(sensors=','.join(sensors), device=device), 'utf-8')
-        cli.transfer('http://192.168.130.2/cloud/qa3/kmx/v2', statements)
-        print sql
+    sqls = ['select scatter({sensors}) from {device}  limit 18']
+    # for sql in sqls:
+    #     statements = sqlparse.parsestream(sql.format(sensors=','.join(sensors), device=device), 'utf-8')
+    #     cli.transfer('http://192.168.130.2/cloud/qa3/kmx/v2', statements)
+    #     print sql
 
-    # statements = sqlparse.parsestream("select scatter(enginRotate, engineTemperature,gsmSignal) from C2063B limit 100", 'utf-8')
-    # cli.transfer('http://218.56.128.30:16805/kmx/v2', statements)
+    statements = sqlparse.parsestream("select scatter(enginRotate, engineTemperature,gsmSignal) from C2063B limit 100", 'utf-8')
+    cli.transfer('http://218.56.128.30:16805/kmx/v2', statements)
