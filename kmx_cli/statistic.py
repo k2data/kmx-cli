@@ -263,6 +263,17 @@ def scatter(payload, sensors):
             axes.set_xlabel(sensors[0])
             axes.set_ylabel(sensors[1])
             axes.scatter(x, y, alpha=0.5, cmap=plt.cm.hsv)
+    elif row == 1:
+        num = 0
+        for axe in axes:
+            num += 1
+            y = datas[sensors[num]]
+            if num < n and not_empty(y):
+                axe.set_xlabel(sensors[0])
+                axe.set_ylabel(sensors[num])
+                axe.scatter(x, y, alpha=0.5, cmap=plt.cm.hsv)
+            else:
+                axe.axis('off') # hide subplot
     elif isinstance(axes, numpy.ndarray):
         num = 0
         for rows in axes:
@@ -305,7 +316,24 @@ def step(payload, sensors):
     fig, axes = plt.subplots(nrows=row, ncols=col, figsize=(20, 8))
     x = datas[sensors[0]]
 
-    if isinstance(axes, numpy.ndarray):
+    if isinstance(axes, matplotlib.axes.Subplot):
+        y = datas[sensors[1]]
+        if not_empty(y):
+            axes.set_xlabel(sensors[0])
+            axes.set_ylabel(sensors[1])
+            axes.step(x, y, lw=1, alpha=0.8)
+    elif row == 1:
+        num = 0
+        for axe in axes:
+            num += 1
+            y = datas[sensors[num]]
+            if num < n and not_empty(y):
+                axe.set_xlabel(sensors[0])
+                axe.set_ylabel(sensors[num])
+                axe.step(x, y, lw=1, alpha=0.8)
+            else:
+                axe.axis('off') # hide subplot
+    elif isinstance(axes, numpy.ndarray):
         num = 0
         for rows in axes:
             for axe in rows:
@@ -317,12 +345,6 @@ def step(payload, sensors):
                     axe.step(x, y, lw=1, alpha=0.8)
                 else:
                     axe.axis('off') # hide subplot
-    elif isinstance(axes, matplotlib.axes.Subplot):
-        y = datas[sensors[1]]
-        if not_empty(y):
-            axes.set_xlabel(sensors[0])
-            axes.set_ylabel(sensors[1])
-            axes.step(x, y, lw=1, alpha=0.8)
     else:
         log.error('unsupport data type')
         plt.close()
@@ -356,7 +378,25 @@ def bar(payload, sensors):
     col = (n-1)/row
     fig, axes = plt.subplots(nrows=row, ncols=col, figsize=(20, 8))
     x = datas[sensors[0]]
-    if isinstance(axes, numpy.ndarray):
+
+    if isinstance(axes, matplotlib.axes.Subplot):
+        y = datas[sensors[1]]
+        if not_empty(y):
+            axes.set_xlabel(sensors[0])
+            axes.set_ylabel(sensors[1])
+            axes.bar(x, y, align="center", width=0.5/n, alpha=0.5)
+    elif row == 1:
+        num = 0
+        for axe in axes:
+            num += 1
+            y = datas[sensors[num]]
+            if num < n and not_empty(y):
+                axe.set_xlabel(sensors[0])
+                axe.set_ylabel(sensors[num])
+                axe.bar(x, y, align="center", width=0.5/n, alpha=0.5)
+            else:
+                axe.axis('off') # hide subplot
+    elif isinstance(axes, numpy.ndarray):
         num = 0
         for rows in axes:
             for axe in rows:
@@ -368,12 +408,6 @@ def bar(payload, sensors):
                     axe.bar(x, y, align="center", width=0.5/n, alpha=0.5)
                 else:
                     axe.axis('off') # hide subplot
-    elif isinstance(axes, matplotlib.axes.Subplot):
-        y = datas[sensors[1]]
-        if not_empty(y):
-            axes.set_xlabel(sensors[0])
-            axes.set_ylabel(sensors[1])
-            axes.bar(x, y, align="center", width=0.5/n, alpha=0.5)
     else:
         log.error('unsupport data type')
         plt.close()
@@ -404,7 +438,24 @@ def fill_between(payload, sensors):
     fig, axes = plt.subplots(nrows=row, ncols=col, figsize=(20, 8))
     x = datas[sensors[0]]
 
-    if isinstance(axes, numpy.ndarray):
+    if isinstance(axes, matplotlib.axes.Subplot):
+        y = datas[sensors[1]]
+        if not_empty(y):
+            axes.set_xlabel(sensors[0])
+            axes.set_ylabel(sensors[1])
+            axes.fill_between(x, y, color="green", alpha=0.5)
+    elif row == 1:
+        num = 0
+        for axe in axes:
+            num += 1
+            y = datas[sensors[num]]
+            if num < n and not_empty(y):
+                axe.set_xlabel(sensors[0])
+                axe.set_ylabel(sensors[num])
+                axe.fill_between(x, y, color="green", alpha=0.5)
+            else:
+                axe.axis('off') # hide subplot
+    elif isinstance(axes, numpy.ndarray):
         num = 0
         for rows in axes:
             for axe in rows:
@@ -416,12 +467,6 @@ def fill_between(payload, sensors):
                     axe.fill_between(x, y, color="green", alpha=0.5)
                 else:
                     axe.axis('off') # hide subplot
-    elif isinstance(axes, matplotlib.axes.Subplot):
-        y = datas[sensors[1]]
-        if not_empty(y):
-            axes.set_xlabel(sensors[0])
-            axes.set_ylabel(sensors[1])
-            axes.fill_between(x, y, color="green", alpha=0.5)
     else:
         log.error('unsupport data type')
         return
@@ -462,7 +507,7 @@ if __name__ == '__main__':
 
     device = 'GW150008'
     sensors = ['WCNVConver_setup_igbt2', 'WCNVConver_chopper_igbt_temp','xx', 'WCNVConver_generator_capacitorstmpf', 'WCNVConver_setup_igbt1', 'WCNVConver_setup_igbt3', 'WCNVHzInstMagf']
-    sensors = ['WCNVConver_setup_igbt2','WCNVConver_chopper_igbt_temp']
+    # sensors = ['WCNVConver_setup_igbt2','WCNVConver_chopper_igbt_temp']
 
     sqls = ['select describe({sensors}) from {device} limit 12',
             'select hist({sensors}) from {device}  limit 12',
@@ -476,11 +521,11 @@ if __name__ == '__main__':
             'select step({sensors}) from {device}  limit 12',
             'select fill({sensors}) from {device}  limit 12']
 
-    # sqls = ['select plots({sensors}) from {device}  limit 18']
-    for sql in sqls:
-        statements = sqlparse.parsestream(sql.format(sensors=','.join(sensors), device=device), 'utf-8')
-        cli.transfer('http://192.168.130.2/cloud/qa3/kmx/v2', statements)
-        print sql
+    sqls = ['select scatter({sensors}) from {device}  limit 18']
+    # for sql in sqls:
+    #     statements = sqlparse.parsestream(sql.format(sensors=','.join(sensors), device=device), 'utf-8')
+    #     cli.transfer('http://192.168.130.2/cloud/qa3/kmx/v2', statements)
+    #     print sql
 
-    # statements = sqlparse.parsestream("select scatter(enginRotate, engineTemperature,gsmSignal) from C2063B limit 100", 'utf-8')
-    # cli.transfer('http://218.56.128.30:16805/kmx/v2', statements)
+    statements = sqlparse.parsestream("select scatter(enginRotate, engineTemperature,gsmSignal) from C2063B limit 100", 'utf-8')
+    cli.transfer('http://218.56.128.30:16805/kmx/v2', statements)
