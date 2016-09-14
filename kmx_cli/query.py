@@ -149,7 +149,7 @@ def get_where(sql):
                         if value.upper().startswith('NOW'):
                             value = relative_time_parser(value, 'iso')
                         else:
-                            value = str(arrow.get()).replace("+", "%2B")
+                            value = str(arrow.get(value)).replace("+", "%2B")
                         if len(value) >= 32:
                             value = value[0:23] + value[26:]
                     else:
